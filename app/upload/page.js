@@ -1,96 +1,49 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../utils/supabaseClient';
 
 export default function UploadPage() {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [link, setLink] = useState('');
+  const router = useRouter();
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+      setLoading(false);
 
-    // ✅ Basic form validation
-    if (!title || !description || !price || !link) {
-      alert('Please fill in all fields');
-      return;
-    }
+      if (!session) {
+        router.push('/login');
+      }
+    };
 
-    // ✅ Upload to Supabase
-    const { data, error } = await supabase
-      .from('products')
-      .insert([{ title, description, price: parseFloat(price), link }]);
+    getSession();
+  }, [router]);
 
-    if (error) {
-      alert('❌ Upload failed: ' + error.message);
-    } else {
-      alert('✅ Product uploaded successfully!');
-      // Optional: Reset form
-      setTitle('');
-      setDescription('');
-      setPrice('');
-      setLink('');
-    }
-  };
+  if (loading) return <p>Checking authentication...</p>;
 
   return (
-    <div style={{ padding: '20px', maxWidth: '500px', margin: '0 auto', fontFamily: 'Arial' }}>
-      <h1 style={{ fontSize: '28px', marginBottom: '10px' }}>Upload a Product</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Product Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          style={inputStyle}
-        />
-        <textarea
-          placeholder="Product Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={4}
-          style={inputStyle}
-        />
-        <input
-          type="number"
-          placeholder="Price (₦)"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          style={inputStyle}
-        />
-        <input
-          type="url"
-          placeholder="Download Link (Google Drive, etc)"
-          value={link}
-          onChange={(e) => setLink(e.target.value)}
-          style={inputStyle}
-        />
-        <button type="submit" style={buttonStyle}>Upload</button>
+    <div style={{ padding: '1rem' }}>
+      <h1>Upload Product</h1>
+      <form>
+        {/* Replace this with your actual upload form */}
+        <label>Product Title</label>
+        <input type="text" name="title" required />
+
+        <br /><br />
+
+        <label>Description</label>
+        <textarea name="description" required></textarea>
+
+        <br /><br />
+
+        <button type="submit">Upload</button>
       </form>
     </div>
   );
-}
-
-// 🔧 Inline styles (simple mobile-friendly)
-const inputStyle = {
-  width: '100%',
-  padding: '10px',
-  marginBottom: '10px',
-  fontSize: '16px',
-  borderRadius: '5px',
-  border: '1px solid #ccc',
-};
-
-const buttonStyle = {
-  width: '100%',
-  padding: '12px',
-  fontSize: '16px',
-  backgroundColor: '#0070f3',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '5px',
-  cursor: 'pointer',
-};
-// Triggering rebuild
+  }
