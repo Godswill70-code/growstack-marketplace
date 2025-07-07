@@ -1,66 +1,68 @@
-'use client'
-import { useState } from 'react'
-import { supabase } from '../../utils/supabaseClient'
-import { useRouter } from 'next/navigation'
+'use client';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { supabase } from '../../utils/supabaseClient';
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleLogin = async (e) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    })
+    });
 
     if (error) {
-      setError(error.message)
+      setErrorMsg(error.message);
     } else {
-      alert('Login successful')
-      router.push('/') // Redirect to homepage or dashboard
+      // Get user role from profiles table
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        setErrorMsg(profileError.message);
+        return;
+      }
+
+      // Redirect based on role
+      const role = profile.role;
+      if (role === 'admin') {
+        router.push('/dashboard/admin');
+      } else {
+        router.push('/dashboard/customer');
+      }
     }
-  }
+  };
 
   return (
-    <div style={{ maxWidth: '400px', margin: 'auto', paddingTop: '100px' }}>
-      <h2 style={{ fontSize: '28px', marginBottom: '20px' }}>Login</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleLogin}>
+    <div style={{ padding: '2rem' }}>
+      <h2>Login</h2>
+      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <input
           type="email"
           placeholder="Email"
-          required
           value={email}
+          required
           onChange={(e) => setEmail(e.target.value)}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
         />
         <input
           type="password"
           placeholder="Password"
-          required
           value={password}
+          required
           onChange={(e) => setPassword(e.target.value)}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
         />
-        <button
-          type="submit"
-          style={{
-            width: '100%',
-            padding: '10px',
-            background: '#0070f3',
-            color: '#fff',
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          Login
-        </button>
+        <button type="submit">Login</button>
+        {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
       </form>
     </div>
-  )
+  );
 }
