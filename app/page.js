@@ -1,48 +1,43 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import Link from 'next/link';
 
 export default function HomePage() {
-  const [products, setProducts] = useState([]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const { data, error } = await supabase.from('products').select('*');
-      if (error) {
-        console.error('Error fetching products:', error.message);
-      } else {
-        setProducts(data);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
   return (
-    <div style={{ padding: '2rem' }}>
-      <h2>🚀 Growstack Marketplace</h2>
+    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+      <h2>Welcome to Growstack Marketplace 👋</h2>
       <p style={{ marginTop: '1rem' }}>
         Discover, promote, and earn from digital products like courses and ebooks.
       </p>
 
-      <section style={{ marginTop: '2rem' }}>
-        <h3>📦 Uploaded Products</h3>
-        {products.length === 0 ? (
-          <p>No products uploaded yet.</p>
-        ) : (
-          <ul style={{ marginTop: '1rem' }}>
-            {products.map((product) => (
-              <li key={product.id} style={{ marginBottom: '1rem' }}>
-                <strong>{product.title}</strong><br />
-                <a href={product.link} target="_blank" rel="noopener noreferrer">
-                  {product.link}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+      {/* Login & Signup buttons */}
+      <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+        <Link href="/login">
+          <button style={buttonStyle}>Login</button>
+        </Link>
+        <Link href="/signup">
+          <button style={buttonStyle}>Signup</button>
+        </Link>
+      </div>
+
+      <section style={{ marginTop: '3rem', padding: '1rem', background: '#f9f9f9', borderRadius: '8px' }}>
+        <h3>🔥 Featured Products</h3>
+        <ul>
+          <li>📘 Affiliate Marketing Crash Course</li>
+          <li>📙 Guide to Building a Digital Product</li>
+          <li>🎥 How to Create Faceless Videos</li>
+        </ul>
       </section>
     </div>
   );
-    }
+}
+
+const buttonStyle = {
+  padding: '0.75rem 1.5rem',
+  backgroundColor: '#0070f3',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '6px',
+  fontSize: '1rem',
+  cursor: 'pointer'
+};
