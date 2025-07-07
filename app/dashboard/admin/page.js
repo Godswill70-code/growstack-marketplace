@@ -1,60 +1,87 @@
 'use client';
+
 import { useEffect, useState } from 'react';
+import { supabase } from '../../utils/supabaseClient';
 import { useRouter } from 'next/navigation';
-import { createClient } from '../../../utils/supabaseClient';
 
 export default function AdminDashboard() {
+  const [user, setUser] = useState(null);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [message, setMessage] = useState('');
   const router = useRouter();
-  const [isAllowed, setIsAllowed] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
-    const verifyAdmin = async () => {
+    const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-
       if (!session) {
         router.push('/login');
         return;
       }
 
-      const { user } = session;
-      const { data, error } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .single();
 
-      if (error || data?.role !== 'admin') {
-        router.push('/dashboard/customer'); // redirect non-admins
-      } else {
-        setIsAllowed(true);
+      if (profile?.role !== 'admin') {
+        router.push('/dashboard/customer');
+        return;
       }
 
-      setLoading(false);
+      setUser(session.user);
     };
 
-    verifyAdmin();
+    getUser();
   }, []);
 
-  if (loading) return <p>Checking access...</p>;
-  if (!isAllowed) return null;
+  const handleInvite = async (e) => {
+    e.preventDefault();
+    setMessage('');
+
+    const { data, error } = await supabase.auth.admin.inviteUserByEmail(inviteEmail);
+
+    if (error) {
+      setMessage('❌ Failed to invite admin: ' + error.message);
+    } else {
+      // After invite, we’ll set them as admin manually in Supabase
+      setMessage('✅ Invite sent. Don’t forget to set their role to "admin" in the Supabase table.');
+    }
+
+    setInviteEmail('');
+  };
+
+  if (!user) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h2>Welcome, Admin 👑</h2>
-      <p>You can manage the entire platform here.</p>
+    <div style={{ padding: '2rem' }}>
+      <h2>👑 Admin Dashboard</h2>
+      <p>Welcome, {user.email}</p>
 
-      <section style={{ marginTop: '2rem' }}>
-        <h4>Invite New Admin</h4>
-        <p>Coming soon: form to invite new admins by email</p>
-      </section>
+      <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f0f0f0', borderRadius: '8px' }}>
+        <h3>📧 Invite New Admin</h3>
+        <form onSubmit={handleInvite}>
+          <input
+            type="email"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+            placeholder="Enter email to invite"
+            required
+            style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }}
+          />
+          <button type="submit" style={{ padding: '0.5rem 1rem' }}>Send Invite</button>
+        </form>
+        {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
+      </div>
 
-      <ul style={{ marginTop: '1rem' }}>
-        <li>🛠 Manage Products</li>
-        <li>👤 Manage Users & Roles</li>
-        <li>📊 Platform Analytics</li>
-      </ul>
+      <div style={{ marginTop: '2rem' }}>
+        <h3>🔗 Quick Access</h3>
+        <ul>
+          <li><a href="/dashboard/customer">Customer Dashboard</a></li>
+          <li><a href="/dashboard/creator">Creator Dashboard</a></li>
+          <li><a href="/dashboard/affiliate">Affiliate Dashboard</a></li>
+        </ul>
+      </div>
     </div>
   );
-}
+    }
