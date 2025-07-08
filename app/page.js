@@ -3,11 +3,13 @@ export default function HomePage() {
     <div style={{ padding: '1.5rem' }}>
       <h2>Welcome to Growstack Marketplace 👋</h2>
       <p style={{ marginTop: '1rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
-        Growstack Marketplace is more than just a platform — it's your digital launchpad. Whether you're a creator, an affiliate, or someone hungry to learn, this is where your journey begins. 
+        Welcome to <strong>Growstack Marketplace</strong> — Africa’s most visionary platform for digital creators, affiliates, and lifelong learners.
         <br /><br />
-        Upload your digital products, promote life-changing content, or earn commissions by sharing valuable offers — all in one seamless experience. We’re building Africa’s #1 digital marketplace where innovation meets opportunity.
+        Whether you're a content creator looking to sell courses, an affiliate ready to earn by promoting valuable products, or someone who just wants to learn and grow — this is your home.
         <br /><br />
-        💡 Join a growing community of visionaries and turn your knowledge into income.
+        🚀 Join the revolution where knowledge turns into income. Upload, promote, earn — all in one place.
+        <br /><br />
+        Let’s help you unlock endless possibilities with your digital content.
       </p>
 
       <section style={{ marginTop: '2rem', padding: '1rem', background: '#f9f9f9', borderRadius: '8px' }}>
