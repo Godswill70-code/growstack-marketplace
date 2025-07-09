@@ -1,73 +1,80 @@
-"use client";
+'use client';
 
-import { useState } from "react"; import { supabase } from "../../utils/supabaseClient"; import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import supabase from '../../utils/supabaseClient';
 
-export default function SignupPage() { const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [loading, setLoading] = useState(false); const [error, setError] = useState(null);
+export default function SignupPage() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
 
-const router = useRouter();
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
-const handleSignup = async (e) => { e.preventDefault(); setLoading(true); setError(null);
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setError('');
 
-const { data, error } = await supabase.auth.signUp({
-  email,
-  password,
-});
+    const { email, password } = formData;
 
-setLoading(false);
+    const { data, error: signupError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
-if (error) {
-  setError(error.message);
-} else {
-  alert("✅ Signup successful. Check your email to confirm.");
-  router.push("/login");
-}
+    if (signupError) {
+      setError(signupError.message);
+      return;
+    }
 
-};
+    // Fetch role based on invite
+    let role = 'customer';
+    const { data: inviteData } = await supabase
+      .from('admin_invites')
+      .select('email')
+      .eq('email', email)
+      .single();
 
-return ( <div style={{ maxWidth: 400, margin: "auto", paddingTop: 60 }}> <h2 style={{ fontWeight: "bold", fontSize: 28, textAlign: "center" }}>Create Account</h2>
+    if (inviteData) {
+      role = 'admin';
+    }
 
-<form onSubmit={handleSignup} style={{ marginTop: 30 }}>
-    <input
-      type="email"
-      placeholder="Email"
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      required
-      style={inputStyle}
-    />
+    // Insert into profiles table
+    await supabase.from('profiles').insert([
+      {
+        id: data.user.id,
+        email,
+        role,
+      },
+    ]);
 
-    <input
-      type="password"
-      placeholder="Password"
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      required
-      style={inputStyle}
-    />
+    alert('Signup successful!');
+    router.push('/dashboard/customer');
+  };
 
-    <button
-      type="submit"
-      disabled={loading}
-      style={{
-        width: "100%",
-        padding: "12px",
-        backgroundColor: "black",
-        color: "white",
-        border: "none",
-        fontWeight: "bold",
-        fontSize: 16,
-        cursor: "pointer",
-      }}
-    >
-      {loading ? "Signing up..." : "Sign Up"}
-    </button>
-
-    {error && <p style={{ color: "red", marginTop: 15 }}>{error}</p>}
-  </form>
-</div>
-
-); }
-
-const inputStyle = { width: "100%", padding: "12px", marginBottom: "16px", border: "1px solid #ccc", borderRadius: "6px", };
-
-                                      
+  return (
+    <div style={{ maxWidth: '400px', margin: 'auto', marginTop: '3rem' }}>
+      <h2>Sign Up</h2>
+      <form onSubmit={handleSignup}>
+        <input
+          name="email"
+          type="email"
+          placeholder="Email"
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="password"
+          type="password"
+          placeholder="Password"
+          onChange={handleChange}
+          required
+        />
+        <button type="submit">Sign Up</button>
+      </form>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </div>
+  );
+    }
