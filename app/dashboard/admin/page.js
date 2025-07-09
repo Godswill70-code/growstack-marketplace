@@ -1,101 +1,60 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import supabase from '../../utils/supabaseClient';
 
 export default function AdminDashboard() {
-  const [admins, setAdmins] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState('');
+  const [user, setUser] = useState(null);
+  const [message, setMessage] = useState('');
 
+  // Get current user
   useEffect(() => {
-    const fetchAdmins = async () => {
-      setLoading(true);
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        alert('You must be logged in');
-        return;
-      }
-
-      setCurrentUser(user);
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, email')
-        .eq('role', 'admin');
-
-      if (error) {
-        console.error('Failed to fetch admins:', error.message);
-      } else {
-        setAdmins(data);
-      }
-
-      setLoading(false);
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
     };
 
-    fetchAdmins();
+    getUser();
   }, []);
 
-  const removeAdmin = async (adminId) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ role: 'customer' })
-      .eq('id', adminId);
+  const handleInvite = async (e) => {
+    e.preventDefault();
+    setMessage('');
+
+    const { data, error } = await supabase
+      .from('admin_invites')
+      .insert([{ email, invited_by: user.id }]);
 
     if (error) {
-      alert('Failed to remove admin');
-      console.error(error.message);
+      setMessage(`❌ Error: ${error.message}`);
     } else {
-      setAdmins((prev) => prev.filter((admin) => admin.id !== adminId));
+      setMessage(`✅ Invite sent to ${email}`);
+      setEmail('');
     }
   };
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h2>🛠 Admin Dashboard</h2>
-      <p style={{ marginBottom: '1rem' }}>
-        Welcome, manage your platform below.
-      </p>
+      <h2>👑 Admin Dashboard</h2>
 
-      <h3>👑 Current Admins:</h3>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {admins.map((admin) => (
-            <li
-              key={admin.id}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '0.5rem',
-                borderBottom: '1px solid #ddd',
-              }}
-            >
-              <span>{admin.email}</span>
-              {admin.id !== currentUser?.id && (
-                <button
-                  style={{
-                    background: '#f44336',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '0.3rem 0.6rem',
-                    cursor: 'pointer',
-                    borderRadius: '4px',
-                  }}
-                  onClick={() => removeAdmin(admin.id)}
-                >
-                  Remove Admin
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+      <div style={{ marginTop: '2rem', maxWidth: '400px' }}>
+        <h3>Invite New Admin</h3>
+        <form onSubmit={handleInvite}>
+          <input
+            type="email"
+            placeholder="Admin email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }}
+          />
+          <button type="submit" style={{ padding: '0.5rem 1rem' }}>
+            Send Invite
+          </button>
+        </form>
+        {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
+      </div>
     </div>
   );
-    }
+      }
