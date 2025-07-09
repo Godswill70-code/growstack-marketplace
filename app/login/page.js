@@ -1,41 +1,37 @@
 'use client';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import { useRouter } from 'next/navigation';
+import supabase from '../../utils/supabaseClient';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
-      setErrorMsg(error.message);
+      setError(error.message);
     } else {
-      // Get user role from profiles table
-      const { data: profile, error: profileError } = await supabase
+      // ✅ Now fetch the user's role from Supabase
+      const { data: userProfile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', data.user.id)
         .single();
 
-      if (profileError) {
-        setErrorMsg(profileError.message);
-        return;
-      }
-
-      // Redirect based on role
-      const role = profile.role;
-      if (role === 'admin') {
+      if (userProfile?.role === 'admin') {
         router.push('/dashboard/admin');
+      } else if (userProfile?.role === 'creator') {
+        router.push('/dashboard/creator');
+      } else if (userProfile?.role === 'affiliate') {
+        router.push('/dashboard/affiliate');
       } else {
         router.push('/dashboard/customer');
       }
@@ -43,26 +39,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div>
       <h2>Login</h2>
-      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <form onSubmit={handleLogin}>
         <input
           type="email"
-          placeholder="Email"
           value={email}
-          required
+          placeholder="Email"
           onChange={(e) => setEmail(e.target.value)}
-        />
+          required
+        /><br />
         <input
           type="password"
-          placeholder="Password"
           value={password}
-          required
+          placeholder="Password"
           onChange={(e) => setPassword(e.target.value)}
-        />
+          required
+        /><br />
         <button type="submit">Login</button>
-        {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
       </form>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
-}
+        }
