@@ -2,86 +2,100 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../utils/supabaseClient';
-import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
-  const [user, setUser] = useState(null);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const router = useRouter();
+  const [admins, setAdmins] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
+    const fetchAdmins = async () => {
+      setLoading(true);
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        alert('You must be logged in');
         return;
       }
 
-      const { data: profile } = await supabase
+      setCurrentUser(user);
+
+      const { data, error } = await supabase
         .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
+        .select('id, email')
+        .eq('role', 'admin');
 
-      if (profile?.role !== 'admin') {
-        router.push('/dashboard/customer');
-        return;
+      if (error) {
+        console.error('Failed to fetch admins:', error.message);
+      } else {
+        setAdmins(data);
       }
 
-      setUser(session.user);
+      setLoading(false);
     };
 
-    getUser();
+    fetchAdmins();
   }, []);
 
-  const handleInvite = async (e) => {
-    e.preventDefault();
-    setMessage('');
-
-    const { data, error } = await supabase.auth.admin.inviteUserByEmail(inviteEmail);
+  const removeAdmin = async (adminId) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: 'customer' })
+      .eq('id', adminId);
 
     if (error) {
-      setMessage('❌ Failed to invite admin: ' + error.message);
+      alert('Failed to remove admin');
+      console.error(error.message);
     } else {
-      // After invite, we’ll set them as admin manually in Supabase
-      setMessage('✅ Invite sent. Don’t forget to set their role to "admin" in the Supabase table.');
+      setAdmins((prev) => prev.filter((admin) => admin.id !== adminId));
     }
-
-    setInviteEmail('');
   };
-
-  if (!user) return <p>Loading...</p>;
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h2>👑 Admin Dashboard</h2>
-      <p>Welcome, {user.email}</p>
+      <h2>🛠 Admin Dashboard</h2>
+      <p style={{ marginBottom: '1rem' }}>
+        Welcome, manage your platform below.
+      </p>
 
-      <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f0f0f0', borderRadius: '8px' }}>
-        <h3>📧 Invite New Admin</h3>
-        <form onSubmit={handleInvite}>
-          <input
-            type="email"
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-            placeholder="Enter email to invite"
-            required
-            style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem' }}
-          />
-          <button type="submit" style={{ padding: '0.5rem 1rem' }}>Send Invite</button>
-        </form>
-        {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
-      </div>
-
-      <div style={{ marginTop: '2rem' }}>
-        <h3>🔗 Quick Access</h3>
-        <ul>
-          <li><a href="/dashboard/customer">Customer Dashboard</a></li>
-          <li><a href="/dashboard/creator">Creator Dashboard</a></li>
-          <li><a href="/dashboard/affiliate">Affiliate Dashboard</a></li>
+      <h3>👑 Current Admins:</h3>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {admins.map((admin) => (
+            <li
+              key={admin.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '0.5rem',
+                borderBottom: '1px solid #ddd',
+              }}
+            >
+              <span>{admin.email}</span>
+              {admin.id !== currentUser?.id && (
+                <button
+                  style={{
+                    background: '#f44336',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '0.3rem 0.6rem',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                  }}
+                  onClick={() => removeAdmin(admin.id)}
+                >
+                  Remove Admin
+                </button>
+              )}
+            </li>
+          ))}
         </ul>
-      </div>
+      )}
     </div>
   );
     }
