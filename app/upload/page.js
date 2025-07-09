@@ -1,94 +1,92 @@
 'use client';
-
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { supabase } from '../../utils/supabaseClient';
 
-export default function UploadPage() {
-  const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function UploadProduct() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
   const [file, setFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const router = useRouter();
+  const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      setLoading(false);
-      if (!data.session) router.push('/login');
-    };
+  const handleUpload = async () => {
+    setMessage('');
 
-    checkSession();
-  }, [router]);
+    if (!file) {
+      setMessage('Please select a file to upload.');
+      return;
+    }
 
-  const handleUpload = async (e) => {
-    e.preventDefault();
-    if (!file || !title || !description) return alert('All fields are required');
+    // Upload file to Supabase bucket
+    const fileName = `${Date.now()}-${file.name}`;
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
+      .from('product-files')
+      .upload(fileName, file);
 
-    try {
-      setUploading(true);
+    if (uploadError) {
+      console.error(uploadError);
+      setMessage('❌ File upload failed.');
+      return;
+    }
 
-      // Upload file to Supabase Storage
-      const fileName = `${Date.now()}-${file.name}`;
-      const { data, error: uploadError } = await supabase.storage
-        .from('products')
-        .upload(fileName, file);
+    // Get public URL of the uploaded file
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('product-files')
+      .getPublicUrl(fileName);
 
-      if (uploadError) throw uploadError;
+    const fileUrl = publicUrlData.publicUrl;
 
-      const fileUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/products/${fileName}`;
+    // Insert product into products table
+    const { error: dbError } = await supabase
+      .from('products')
+      .insert([{ title, description, price, link: fileUrl }]);
 
-      // Save product to database
-      const { error: insertError } = await supabase.from('products').insert([
-        {
-          title,
-          description,
-          file_url: fileUrl,
-          user_id: session.user.id,
-        },
-      ]);
-
-      if (insertError) throw insertError;
-
-      alert('Upload successful!');
+    if (dbError) {
+      console.error(dbError);
+      setMessage(`❌ Upload failed: ${dbError.message}`);
+    } else {
+      setMessage('✅ Product uploaded successfully!');
       setTitle('');
       setDescription('');
+      setPrice('');
       setFile(null);
-    } catch (err) {
-      alert('Error uploading file: ' + err.message);
-    } finally {
-      setUploading(false);
     }
   };
 
-  if (loading) return <p>Checking authentication...</p>;
-
   return (
-    <div style={{ padding: '1rem' }}>
-      <h1>Upload Your Product</h1>
-      <form onSubmit={handleUpload}>
-        <label>Title:</label><br />
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
+    <div style={{ padding: '2rem' }}>
+      <h2>Upload a Product</h2>
+      {message && <p style={{ color: message.includes('❌') ? 'red' : 'green' }}>{message}</p>}
+      <input
+        type="text"
+        placeholder="Product Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      /><br /><br />
 
-        <br /><br />
+      <textarea
+        placeholder="Product Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        rows={4}
+        cols={40}
+      /><br /><br />
 
-        <label>Description:</label><br />
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} required />
+      <input
+        type="number"
+        placeholder="Price in Naira"
+        value={price}
+        onChange={(e) => setPrice(e.target.value)}
+      /><br /><br />
 
-        <br /><br />
+      <input
+        type="file"
+        onChange={(e) => setFile(e.target.files[0])}
+      /><br /><br />
 
-        <label>Upload File (PDF, MP4, etc):</label><br />
-        <input type="file" onChange={(e) => setFile(e.target.files[0])} required />
-
-        <br /><br />
-
-        <button type="submit" disabled={uploading}>
-          {uploading ? 'Uploading...' : 'Upload'}
-        </button>
-      </form>
+      <button onClick={handleUpload}>Upload</button>
     </div>
   );
-}
+    }
