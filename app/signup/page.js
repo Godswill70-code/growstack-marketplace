@@ -1,80 +1,87 @@
 'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '../../utils/supabaseClient';
 
 export default function SignupPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-
-  const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    setError('');
+    setLoading(true);
+    setMessage('');
 
-    const { email, password } = formData;
-
-    const { data, error: signupError } = await supabase.auth.signUp({
+    // Sign up user
+    const { data: signupData, error: signupError } = await supabase.auth.signUp({
       email,
       password,
     });
 
     if (signupError) {
-      setError(signupError.message);
+      setMessage(signupError.message);
+      setLoading(false);
       return;
     }
 
-    // Fetch role based on invite
-    let role = 'customer';
-    const { data: inviteData } = await supabase
+    const userId = signupData?.user?.id;
+
+    // Check admin_invites table
+    const { data: invited, error: inviteError } = await supabase
       .from('admin_invites')
-      .select('email')
+      .select('*')
       .eq('email', email)
       .single();
 
-    if (inviteData) {
-      role = 'admin';
-    }
+    const role = invited ? 'admin' : 'customer';
 
-    // Insert into profiles table
-    await supabase.from('profiles').insert([
+    // Add to profiles table
+    const { error: profileError } = await supabase.from('profiles').insert([
       {
-        id: data.user.id,
+        id: userId,
         email,
         role,
       },
     ]);
 
-    alert('Signup successful!');
-    router.push('/dashboard/customer');
+    if (profileError) {
+      setMessage('Signup succeeded but failed to create profile.');
+    } else {
+      setMessage('Signup successful!');
+      router.push('/login');
+    }
+
+    setLoading(false);
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: 'auto', marginTop: '3rem' }}>
+    <div style={{ maxWidth: '400px', margin: 'auto', padding: '2rem' }}>
       <h2>Sign Up</h2>
       <form onSubmit={handleSignup}>
         <input
-          name="email"
           type="email"
           placeholder="Email"
-          onChange={handleChange}
           required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          style={{ width: '100%', marginBottom: '1rem', padding: '0.5rem' }}
         />
         <input
-          name="password"
           type="password"
           placeholder="Password"
-          onChange={handleChange}
           required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ width: '100%', marginBottom: '1rem', padding: '0.5rem' }}
         />
-        <button type="submit">Sign Up</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Signing up...' : 'Sign Up'}
+        </button>
+        {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
     }
