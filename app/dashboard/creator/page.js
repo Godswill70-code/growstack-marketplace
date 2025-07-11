@@ -4,8 +4,9 @@ import supabase from '../../utils/supabaseClient';
 
 export default function CreatorDashboard() {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [creatorId, setCreatorId] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -44,15 +45,38 @@ export default function CreatorDashboard() {
   const handleDelete = async (id) => {
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (!error) {
-      setProducts(products.filter((product) => product.id !== id));
+      setProducts(products.filter((p) => p.id !== id));
+    }
+  };
+
+  const handleEdit = (product) => {
+    setEditingProduct(product);
+  };
+
+  const handleSave = async () => {
+    const { error } = await supabase
+      .from('products')
+      .update({
+        title: editingProduct.title,
+        description: editingProduct.description,
+        price: editingProduct.price,
+        image: editingProduct.image,
+      })
+      .eq('id', editingProduct.id);
+
+    if (!error) {
+      setProducts((prev) =>
+        prev.map((p) => (p.id === editingProduct.id ? editingProduct : p))
+      );
+      setEditingProduct(null);
     }
   };
 
   return (
     <div style={{ padding: '2rem' }}>
       <h2>📦 Your Uploaded Products</h2>
-
       {message && <p>{message}</p>}
+
       {loading ? (
         <p>Loading...</p>
       ) : products.length === 0 ? (
@@ -69,24 +93,70 @@ export default function CreatorDashboard() {
                 borderRadius: '8px',
               }}
             >
-              <strong>{product.title}</strong>
-              <p>{product.description}</p>
-              <p>💰 ${product.price}</p>
-              <img
-                src={product.image}
-                alt="product"
-                style={{ width: '100%', maxWidth: '200px', marginTop: '0.5rem' }}
-              />
-              <div style={{ marginTop: '0.5rem' }}>
-                <button style={{ marginRight: '1rem' }}>Edit</button>
-                <button onClick={() => handleDelete(product.id)} style={{ color: 'red' }}>
-                  Delete
-                </button>
-              </div>
+              {editingProduct?.id === product.id ? (
+                <div>
+                  <input
+                    type="text"
+                    value={editingProduct.title}
+                    onChange={(e) =>
+                      setEditingProduct({ ...editingProduct, title: e.target.value })
+                    }
+                    placeholder="Title"
+                  />
+                  <textarea
+                    value={editingProduct.description}
+                    onChange={(e) =>
+                      setEditingProduct({ ...editingProduct, description: e.target.value })
+                    }
+                    placeholder="Description"
+                  />
+                  <input
+                    type="number"
+                    value={editingProduct.price}
+                    onChange={(e) =>
+                      setEditingProduct({ ...editingProduct, price: e.target.value })
+                    }
+                    placeholder="Price"
+                  />
+                  <input
+                    type="text"
+                    value={editingProduct.image}
+                    onChange={(e) =>
+                      setEditingProduct({ ...editingProduct, image: e.target.value })
+                    }
+                    placeholder="Image URL"
+                  />
+                  <button onClick={handleSave} style={{ marginTop: '0.5rem' }}>
+                    Save
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <strong>{product.title}</strong>
+                  <p>{product.description}</p>
+                  <p>💰 ${product.price}</p>
+                  <img
+                    src={product.image}
+                    alt="product"
+                    style={{ width: '100%', maxWidth: '200px', marginTop: '0.5rem' }}
+                  />
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <button
+                      onClick={() => handleEdit(product)}
+                      style={{ marginRight: '1rem' }}
+                    >
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(product.id)} style={{ color: 'red' }}>
+                      Delete
+                    </button>
+                  </div>
+                </>
+              )}
             </li>
           ))}
         </ul>
       )}
     </div>
   );
-}
+        }
