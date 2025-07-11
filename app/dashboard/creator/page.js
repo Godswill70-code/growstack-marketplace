@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation'; 
 import supabase from '../../utils/supabaseClient';
 
 export default function CreatorDashboard() {
@@ -9,6 +10,7 @@ export default function CreatorDashboard() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,6 +86,22 @@ export default function CreatorDashboard() {
   return (
     <div style={{ padding: '2rem' }}>
       <h2>📦 Creator Dashboard</h2>
+  
+      <button
+  onClick={() => router.push('/dashboard/creator/upload')}
+  style={{
+    padding: '0.6rem 1.2rem',
+    backgroundColor: '#4f46e5',
+    color: '#fff',
+    fontWeight: 'bold',
+    border: 'none',
+    borderRadius: '8px',
+    marginBottom: '1.2rem',
+    cursor: 'pointer',
+  }}
+>
+  ➕ Upload New Product
+</button>
       {message && <p>{message}</p>}
 
       {loading ? (
