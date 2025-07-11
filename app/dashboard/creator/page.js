@@ -4,6 +4,7 @@ import supabase from '../../utils/supabaseClient';
 
 export default function CreatorDashboard() {
   const [products, setProducts] = useState([]);
+  const [purchases, setPurchases] = useState([]);
   const [creatorId, setCreatorId] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,18 +25,30 @@ export default function CreatorDashboard() {
       const userId = session.user.id;
       setCreatorId(userId);
 
-      const { data, error } = await supabase
+      // Fetch products
+      const { data: productList, error: productError } = await supabase
         .from('products')
         .select('*')
         .eq('creator_id', userId);
-
-      if (error) {
+      if (productError) {
         setMessage('Failed to load products');
         setLoading(false);
         return;
       }
+      setProducts(productList);
 
-      setProducts(data);
+      // Fetch purchases
+      const { data: purchaseList, error: purchaseError } = await supabase
+        .from('purchases')
+        .select('*')
+        .eq('creator_id', userId);
+      if (purchaseError) {
+        setMessage('Failed to load purchases');
+        setLoading(false);
+        return;
+      }
+      setPurchases(purchaseList);
+
       setLoading(false);
     };
 
@@ -72,17 +85,34 @@ export default function CreatorDashboard() {
     }
   };
 
+  const totalSales = purchases.length;
+  const totalRevenue = purchases.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+
   return (
     <div style={{ padding: '2rem' }}>
-      <h2>📦 Your Uploaded Products</h2>
+      <h2>📦 Creator Dashboard</h2>
       {message && <p>{message}</p>}
+
+      <div
+        style={{
+          marginTop: '1rem',
+          padding: '1rem',
+          background: '#f0f8ff',
+          borderRadius: '8px',
+          border: '1px solid #d1eaff',
+        }}
+      >
+        <h3>💰 Sales Summary</h3>
+        <p>🛒 Total Sales: <strong>{totalSales}</strong></p>
+        <p>💵 Total Revenue: <strong>₦{totalRevenue.toLocaleString()}</strong></p>
+      </div>
 
       {loading ? (
         <p>Loading...</p>
       ) : products.length === 0 ? (
         <p>No products uploaded yet.</p>
       ) : (
-        <ul style={{ marginTop: '1rem' }}>
+        <ul style={{ marginTop: '2rem' }}>
           {products.map((product) => (
             <li
               key={product.id}
@@ -134,7 +164,7 @@ export default function CreatorDashboard() {
                 <>
                   <strong>{product.title}</strong>
                   <p>{product.description}</p>
-                  <p>💰 ${product.price}</p>
+                  <p>💰 ₦{product.price}</p>
                   <img
                     src={product.image}
                     alt="product"
