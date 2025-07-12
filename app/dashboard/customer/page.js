@@ -9,6 +9,8 @@ export default function CustomerDashboard() {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -37,7 +39,17 @@ export default function CustomerDashboard() {
       setLoading(false);
     };
 
+    const fetchProducts = async () => {
+      const { data, error } = await supabase.from('products').select('*');
+      if (error) {
+        console.error('Error fetching products:', error.message);
+      } else {
+        setProducts(data);
+      }
+    };
+
     fetchUser();
+    fetchProducts();
   }, [router]);
 
   const handleRoleUpdate = async (newRole) => {
@@ -53,6 +65,36 @@ export default function CustomerDashboard() {
 
     setRole(newRole);
     router.push(`/dashboard/${newRole}`);
+  };
+
+  const handlePurchase = async (product) => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setMessage('You must be logged in to purchase.');
+      return;
+    }
+
+    const buyerId = session.user.id;
+    const referralId = localStorage.getItem('referral_id');
+
+    const { error } = await supabase.from('purchases').insert([
+      {
+        buyer_id: buyerId,
+        product_id: product.id,
+        creator_id: product.creator_id,
+        amount: product.price,
+        referral_id: referralId || null,
+      },
+    ]);
+
+    if (error) {
+      setMessage('❌ Failed to complete purchase.');
+    } else {
+      setMessage('✅ Purchase successful!');
+    }
   };
 
   if (loading) return <p>Loading...</p>;
@@ -81,6 +123,33 @@ export default function CustomerDashboard() {
           </button>
         )}
       </div>
+
+      {/* Display Products to Buy */}
+      <div style={{ marginTop: '3rem' }}>
+        <h3>🛒 Available Products</h3>
+        {products.length === 0 ? (
+          <p>No products available.</p>
+        ) : (
+          <ul style={{ marginTop: '1rem' }}>
+            {products.map((product) => (
+              <li key={product.id} style={productCard}>
+                <strong>{product.title}</strong>
+                <p>{product.description}</p>
+                <p>💰 ₦{product.price}</p>
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  style={{ maxWidth: '200px', marginTop: '0.5rem' }}
+                />
+                <button onClick={() => handlePurchase(product)} style={{ marginTop: '1rem' }}>
+                  Buy Now
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {message && <p style={{ marginTop: '1rem', color: 'green' }}>{message}</p>}
+      </div>
     </div>
   );
 }
@@ -99,4 +168,11 @@ const buttonStyle = {
 const adminButton = {
   ...buttonStyle,
   backgroundColor: '#000',
+};
+
+const productCard = {
+  padding: '1rem',
+  border: '1px solid #ccc',
+  marginBottom: '1rem',
+  borderRadius: '8px',
 };
