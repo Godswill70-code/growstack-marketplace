@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '../../utils/supabaseClient';
+import { createClient } from '../../../utils/supabaseClient';
 
 export default async function CreatorLayout({ children }) {
   const supabase = createClient();
