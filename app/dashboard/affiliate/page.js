@@ -5,6 +5,7 @@ import supabase from '../../utils/supabaseClient';
 export default function AffiliateDashboard() {
   const [products, setProducts] = useState([]);
   const [referrals, setReferrals] = useState([]);
+  const [referralDetails, setReferralDetails] = useState([]);
   const [affiliateId, setAffiliateId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -24,15 +25,15 @@ export default function AffiliateDashboard() {
       const userId = session.user.id;
       setAffiliateId(userId);
 
-      // Fetch all products (to promote)
+      // Fetch all products
       const { data: allProducts, error: productError } = await supabase
         .from('products')
         .select('*');
 
-      // Fetch referrals or purchases related to this affiliate
+      // Fetch referrals (purchases with affiliate_id)
       const { data: myReferrals, error: referralError } = await supabase
         .from('purchases')
-        .select('*')
+        .select('*, products(title)')
         .eq('affiliate_id', userId);
 
       if (productError || referralError) {
@@ -43,6 +44,16 @@ export default function AffiliateDashboard() {
 
       setProducts(allProducts);
       setReferrals(myReferrals);
+
+      // Optional: Format detailed view
+      const mapped = myReferrals.map((ref) => ({
+        id: ref.id,
+        amount: ref.affiliate_commission || 0,
+        productTitle: ref.products?.title || 'Unknown Product',
+        date: ref.created_at,
+      }));
+      setReferralDetails(mapped);
+
       setLoading(false);
     };
 
@@ -104,9 +115,25 @@ export default function AffiliateDashboard() {
                 .reduce((sum, r) => sum + parseFloat(r.affiliate_commission || 0), 0)
                 .toLocaleString()}
             </p>
+
+            <ul style={{ marginTop: '1rem' }}>
+              {referralDetails.map((ref) => (
+                <li
+                  key={ref.id}
+                  style={{
+                    marginBottom: '0.5rem',
+                    padding: '0.5rem',
+                    borderBottom: '1px solid #ccc',
+                  }}
+                >
+                  <strong>{ref.productTitle}</strong> - ₦{ref.amount} -{' '}
+                  {new Date(ref.date).toLocaleDateString()}
+                </li>
+              ))}
+            </ul>
           </div>
         </>
       )}
     </div>
   );
-                                         }
+        }
