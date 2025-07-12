@@ -1,43 +1,53 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '../../utils/supabaseClient';
+import supabase from '../../utils/supabaseClient';
 
-export default function PurchaseButton({ product }) {
-  const [message, setMessage] = useState('');
+export default function PurchaseButton({ productId, price, title }) {
   const [loading, setLoading] = useState(false);
+  const [confirmation, setConfirmation] = useState('');
+  const [lastPurchase, setLastPurchase] = useState(null);
+  const [error, setError] = useState('');
 
   const handlePurchase = async () => {
     setLoading(true);
-    setMessage('');
+    setConfirmation('');
+    setError('');
 
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
     if (!session) {
-      setMessage('❌ Please log in to purchase.');
+      setError('You must be logged in to purchase.');
       setLoading(false);
       return;
     }
 
-    const buyerId = session.user.id;
-    const referralId = localStorage.getItem('referral_id');
+    const userId = session.user.id;
 
-    const { error } = await supabase.from('purchases').insert([
+    const urlParams = new URLSearchParams(window.location.search);
+    const affiliateId = urlParams.get('ref');
+
+    // Calculate 60% affiliate commission
+    const commission = affiliateId ? price * 0.6 : 0;
+
+    const { error: purchaseError } = await supabase.from('purchases').insert([
       {
-        buyer_id: buyerId,
-        product_id: product.id,
-        creator_id: product.creator_id,
-        amount: product.price,
-        referral_id: referralId || null,
+        product_id: productId,
+        customer_id: userId,
+        amount: price,
+        affiliate_id: affiliateId || null,
+        affiliate_commission: affiliateId ? commission : null,
+        creator_id: session.user.id, // Optional
       },
     ]);
 
-    if (error) {
-      setMessage('❌ Failed to complete purchase.');
+    if (purchaseError) {
+      setError('❌ Failed to process purchase.');
     } else {
-      setMessage('✅ Purchase successful!');
+      setConfirmation('✅ Purchase successful!');
+      setLastPurchase({ title, amount: price });
     }
 
     setLoading(false);
@@ -48,7 +58,22 @@ export default function PurchaseButton({ product }) {
       <button onClick={handlePurchase} disabled={loading}>
         {loading ? 'Processing...' : 'Buy Now'}
       </button>
-      {message && <p style={{ marginTop: '0.5rem', color: 'green' }}>{message}</p>}
+
+      {/* ✅ Success message */}
+      {confirmation && (
+        <p style={{ color: 'green', marginTop: '0.5rem' }}>{confirmation}</p>
+      )}
+
+      {/* 🔁 Optional preview */}
+      {lastPurchase && (
+        <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+          <p><strong>Product:</strong> {lastPurchase.title}</p>
+          <p><strong>Amount:</strong> ₦{lastPurchase.amount}</p>
+        </div>
+      )}
+
+      {/* ❌ Error */}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
-  }
+      }
