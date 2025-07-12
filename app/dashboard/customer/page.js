@@ -123,6 +123,12 @@ export default function CustomerDashboard() {
           </button>
         )}
       </div>
+      <button
+    onClick={() => router.push('/marketplace')}
+    style={{ ...buttonStyle, backgroundColor: '#10b981' }}
+  >
+    🛍️ Browse Marketplace
+  </button>
 
       {/* Display Products to Buy */}
       <div style={{ marginTop: '3rem' }}>
