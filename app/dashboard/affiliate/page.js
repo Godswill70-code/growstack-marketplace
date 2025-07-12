@@ -3,90 +3,110 @@ import { useEffect, useState } from 'react';
 import supabase from '../../utils/supabaseClient';
 
 export default function AffiliateDashboard() {
-  const [sales, setSales] = useState([]);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [totalCommission, setTotalCommission] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [referrals, setReferrals] = useState([]);
+  const [affiliateId, setAffiliateId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const COMMISSION_RATE = 0.6; // 60%
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const fetchSales = async () => {
+    const fetchData = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (!session) return;
-
-      const affiliateId = session.user.id;
-
-      const { data, error } = await supabase
-        .from('purchases')
-        .select('product_id, quantity, products(title, price)')
-        .eq('affiliate_id', affiliateId);
-
-      if (error) {
-        console.error(error);
+      if (!session) {
+        setMessage('You are not logged in.');
         setLoading(false);
         return;
       }
 
-      let revenue = 0;
-      let commission = 0;
+      const userId = session.user.id;
+      setAffiliateId(userId);
 
-      const formatted = data.map((purchase) => {
-        const product = purchase.products;
-        const amount = product.price * purchase.quantity;
-        const earned = amount * COMMISSION_RATE;
+      // Fetch all products (to promote)
+      const { data: allProducts, error: productError } = await supabase
+        .from('products')
+        .select('*');
 
-        revenue += amount;
-        commission += earned;
+      // Fetch referrals or purchases related to this affiliate
+      const { data: myReferrals, error: referralError } = await supabase
+        .from('purchases')
+        .select('*')
+        .eq('affiliate_id', userId);
 
-        return {
-          title: product.title,
-          quantity: purchase.quantity,
-          price: product.price,
-          total: amount,
-          earned,
-        };
-      });
+      if (productError || referralError) {
+        setMessage('Failed to load data.');
+        setLoading(false);
+        return;
+      }
 
-      setSales(formatted);
-      setTotalRevenue(revenue);
-      setTotalCommission(commission);
+      setProducts(allProducts);
+      setReferrals(myReferrals);
       setLoading(false);
     };
 
-    fetchSales();
+    fetchData();
   }, []);
+
+  const referralLink = (productId) =>
+    `${window.location.origin}/product/${productId}?ref=${affiliateId}`;
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h2>💼 Affiliate Dashboard</h2>
+      <h2>🤝 Affiliate Dashboard</h2>
+      {message && <p>{message}</p>}
 
       {loading ? (
         <p>Loading...</p>
       ) : (
         <>
-          <h3 style={{ marginTop: '1rem' }}>📊 Your Sales</h3>
-          <p>Total Sales Value: <strong>${totalRevenue.toFixed(2)}</strong></p>
-          <p>Your Commission (60%): <strong>${totalCommission.toFixed(2)}</strong></p>
+          {/* 💼 Products to Promote */}
+          <div>
+            <h3>📢 Promote These Products</h3>
+            {products.map((product) => (
+              <div
+                key={product.id}
+                style={{
+                  border: '1px solid #ccc',
+                  padding: '1rem',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                }}
+              >
+                <strong>{product.title}</strong>
+                <p>{product.description}</p>
+                <p>💰 Price: ₦{product.price}</p>
+                <p>
+                  🔗 Your Referral Link:
+                  <br />
+                  <code>{referralLink(product.id)}</code>
+                </p>
+              </div>
+            ))}
+          </div>
 
-          {sales.length === 0 ? (
-            <p>No affiliate sales yet.</p>
-          ) : (
-            <ul style={{ marginTop: '1rem' }}>
-              {sales.map((item, i) => (
-                <li key={i} style={{ borderBottom: '1px solid #ccc', padding: '1rem 0' }}>
-                  <strong>{item.title}</strong><br />
-                  Quantity: {item.quantity}<br />
-                  Price: ${item.price}<br />
-                  Earned: <strong>${item.earned.toFixed(2)}</strong>
-                </li>
-              ))}
-            </ul>
-          )}
+          {/* 📈 Referral Stats */}
+          <div
+            style={{
+              marginTop: '2rem',
+              padding: '1rem',
+              background: '#f9f9f9',
+              borderRadius: '8px',
+              border: '1px solid #ddd',
+            }}
+          >
+            <h3>📊 Your Referrals</h3>
+            <p>🧾 Total Referrals: {referrals.length}</p>
+            <p>
+              💰 Total Earned: ₦
+              {referrals
+                .reduce((sum, r) => sum + parseFloat(r.affiliate_commission || 0), 0)
+                .toLocaleString()}
+            </p>
+          </div>
         </>
       )}
     </div>
   );
-}
+                                         }
