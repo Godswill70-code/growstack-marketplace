@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react'; import { useRouter } from 'next/navigation'; import supabase from '../../utils/supabaseClient';
+import { useEffect, useState } from 'react'; import { useRouter } from 'next/navigation'; import supabase from '../../../utils/supabaseClient';
 
 export default function ProfilePage() { const [profile, setProfile] = useState(null); const [loading, setLoading] = useState(true); const [fullName, setFullName] = useState(''); const [phone, setPhone] = useState(''); const [message, setMessage] = useState(''); const router = useRouter();
 
