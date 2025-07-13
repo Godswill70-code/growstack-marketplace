@@ -1,59 +1,120 @@
 'use client';
-import { useState } from 'react';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import supabase from '../utils/supabaseClient';
 
-export default function HamburgerMenu({ role }) {
+export default function HamburgerMenu() {
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState('');
+  const router = useRouter();
 
-  const links = [
-    { label: 'Dashboard', href: `/dashboard/${role}` },
-    { label: 'Profile', href: '/dashboard/profile' },
-    { label: 'Switch to Creator', href: '/dashboard/creator' },
-    { label: 'Switch to Affiliate', href: '/dashboard/affiliate' },
-    { label: 'Switch to Customer', href: '/dashboard/customer' },
-  ];
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!error) {
+        setUser(session.user);
+        setRole(data.role);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const handleRoleSwitch = async (newRole) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', user.id);
+
+    if (!error) {
+      router.push(`/dashboard/${newRole}`);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(!open)} style={menuButtonStyle}>
+    <div style={{ position: 'relative', padding: '1rem' }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          fontSize: '1.5rem',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+      >
         ☰
       </button>
 
       {open && (
-        <div style={menuStyle}>
-          {links.map((link) => (
-            <Link key={link.label} href={link.href}>
-              <div style={linkStyle}>{link.label}</div>
+        <div
+          style={{
+            position: 'absolute',
+            top: '3rem',
+            left: '0',
+            background: '#fff',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            borderRadius: '10px',
+            padding: '1rem',
+            width: '230px',
+            zIndex: 999,
+          }}
+        >
+          <p><strong>{user?.email}</strong></p>
+          <p style={{ color: '#555' }}>Role: <b>{role}</b></p>
+
+          <Link href="/profile" style={linkStyle}>⚙️ Profile Settings</Link>
+
+          {role !== 'creator' && (
+            <button onClick={() => handleRoleSwitch('creator')} style={linkStyle}>
+              🎬 Become a Creator
+            </button>
+          )}
+
+          {role !== 'affiliate' && (
+            <button onClick={() => handleRoleSwitch('affiliate')} style={linkStyle}>
+              🤝 Become an Affiliate
+            </button>
+          )}
+
+          {role === 'admin' && (
+            <Link href="/dashboard/admin" style={linkStyle}>
+              🛠 Admin Panel
             </Link>
-          ))}
+          )}
+
+          <button onClick={handleLogout} style={{ ...linkStyle, color: 'red' }}>
+            🔓 Log out
+          </button>
         </div>
       )}
     </div>
   );
 }
 
-const menuButtonStyle = {
-  fontSize: '24px',
-  background: 'transparent',
-  border: 'none',
-  cursor: 'pointer',
-};
-
-const menuStyle = {
-  position: 'absolute',
-  top: '30px',
-  left: '0',
-  background: '#fff',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  borderRadius: '8px',
-  padding: '10px',
-  zIndex: 999,
-};
-
 const linkStyle = {
-  padding: '8px 12px',
-  borderBottom: '1px solid #eee',
-  textDecoration: 'none',
+  display: 'block',
+  padding: '10px 0',
+  background: 'none',
+  border: 'none',
   color: '#333',
+  textAlign: 'left',
+  fontSize: '1rem',
+  width: '100%',
   cursor: 'pointer',
 };
