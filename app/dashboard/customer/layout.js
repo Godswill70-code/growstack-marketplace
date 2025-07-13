@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '../../utils/supabaseClient';
+import { createClient } from '../../../utils/supabaseClient';
+import HamburgerMenu from '../../../components/HamburgerMenu';
 
 export default async function CustomerLayout({ children }) {
   const supabase = createClient();
