@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import supabase from '../../utils/supabaseClient';
+import supabase from '../../../utils/supabaseClient';
 
 export default function ProductPage({ params }) {
   const [product, setProduct] = useState(null);
