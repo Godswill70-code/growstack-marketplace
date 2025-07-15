@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '../../../utils/supabaseClient';
+import supabase from '../../../utils/supabaseClient';
 import HamburgerMenu from '../../../components/HamburgerMenu';
 
 export default async function CreatorLayout({ children }) {
