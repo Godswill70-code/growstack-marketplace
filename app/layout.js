@@ -1,10 +1,11 @@
 'use client';
 import '../styles/globals.css';
 import Navbar from '../components/Navbar';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function RootLayout({ children }) {
+// ✅ A separate client component to handle searchParams inside a Suspense boundary
+function HandleReferral() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -14,10 +15,18 @@ export default function RootLayout({ children }) {
     }
   }, [searchParams]);
 
+  return null; // nothing to render visually
+}
+
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body style={{ margin: 0, fontFamily: 'Arial' }}>
         <Navbar />
+        {/* ✅ Wrap the searchParams logic in Suspense */}
+        <Suspense fallback={null}>
+          <HandleReferral />
+        </Suspense>
         <main>{children}</main>
       </body>
     </html>
