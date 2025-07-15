@@ -1,6 +1,6 @@
 import '../../styles/globals.css';
 import { redirect } from 'next/navigation';
-import { createClient } from '../../utils/supabaseClient';
+import supabase from '../../utils/supabaseClient';
 import ChatBotWidget from '../../components/ChatBotWidget';
 
 export default async function DashboardLayout({ children }) {
