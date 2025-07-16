@@ -3,7 +3,7 @@ import supabase from '../../../utils/supabaseClient';
 import HamburgerMenu from '../../../components/HamburgerMenu';
 
 export default async function AffiliateLayout({ children }) {
-  const supabase = createClient();
+  
   const {
     data: { session },
   } = await supabase.auth.getSession();
