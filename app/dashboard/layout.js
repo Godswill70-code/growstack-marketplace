@@ -4,7 +4,7 @@ import supabase from '../../utils/supabaseClient';
 import ChatBotWidget from '../../components/ChatBotWidget';
 
 export default async function DashboardLayout({ children }) {
-  const supabase = createClient();
+  
   const {
     data: { session },
   } = await supabase.auth.getSession();
