@@ -15,15 +15,22 @@ export default function SignupPage() {
     setLoading(true);
     setMessage('');
 
-    // 1️⃣ Sign up the user in Supabase Auth
-    const { data: signupData, error: signupError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    // Add to profiles table
+const { error: profileError } = await supabase.from('profiles').insert([
+  {
+    id: userId,
+    email,
+    role,
+  },
+]);
 
-    if (signupError) {
-      setMessage(`❌ Signup failed: ${signupError.message}`);
-      setLoading(false);
+if (profileError) {
+  console.error('Profile insert error:', profileError); // 👈 shows the real reason
+  setMessage(`Signup succeeded but failed to create profile: ${profileError.message}`);
+} else {
+  setMessage('Signup successful!');
+  router.push('/login');
+}
       return;
     }
 
