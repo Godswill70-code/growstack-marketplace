@@ -15,72 +15,56 @@ export default function SignupPage() {
     setLoading(true);
     setMessage('');
 
-    // Add to profiles table
-const { error: profileError } = await supabase.from('profiles').insert([
-  {
-    id: userId,
-    email,
-    role,
-  },
-]);
+    console.log('🔄 Signing up user with email:', email);
 
-if (profileError) {
-  console.error('Profile insert error:', profileError); // 👈 shows the real reason
-  setMessage(`Signup succeeded but failed to create profile: ${profileError.message}`);
-} else {
-  setMessage('Signup successful!');
-  router.push('/login');
-}
-      return;
-    }
+    // Step 1: Sign up user
+    const { data: signupData, error: signupError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
-    const userId = signupData?.user?.id;
-    if (!userId) {
-      setMessage('❌ Signup succeeded but no user ID was returned.');
+    if (signupError) {
+      console.error('❌ Signup error:', signupError);
+      setMessage(`❌ Signup failed: ${signupError.message}`);
       setLoading(false);
       return;
     }
 
-    // 2️⃣ Check if this email is in admin_invites table
+    console.log('✅ Signup succeeded:', signupData);
+    const userId = signupData?.user?.id;
+
+    // Step 2: Check admin_invites table
     let role = 'customer';
-    try {
-      const { data: invited, error: inviteError } = await supabase
-        .from('admin_invites')
-        .select('*')
-        .eq('email', email)
-        .maybeSingle(); // avoids throwing if no row
+    const { data: invited, error: inviteError } = await supabase
+      .from('admin_invites')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle(); // safer than single()
 
-      if (inviteError) {
-        console.warn('⚠️ Admin invite lookup error:', inviteError.message);
-      }
-
-      if (invited) {
-        role = 'admin';
-      }
-    } catch (err) {
-      console.warn('⚠️ Admin invite lookup exception:', err);
+    if (inviteError) {
+      console.warn('⚠️ Admin invite check error:', inviteError.message);
+    } else if (invited) {
+      role = 'admin';
     }
 
-    // 3️⃣ Insert profile into profiles table
+    console.log('➡️ Role to insert in profiles:', role);
+
+    // Step 3: Insert profile
     const { error: profileError } = await supabase.from('profiles').insert([
       {
-        id: userId,       // must match auth.uid()
-        email: email,
-        role: role,
-        full_name: '',    // optional field if exists
-        phone: ''         // optional field if exists
+        id: userId,
+        email,
+        role,
       },
     ]);
 
     if (profileError) {
-      console.error('❌ Profile creation error:', profileError.message);
-      setMessage('✅ Signup succeeded but ❌ failed to create profile.');
+      console.error('❌ Profile insert error:', profileError);
+      setMessage(`❌ Profile creation failed: ${profileError.message}`);
     } else {
-      setMessage('🎉 Signup & profile created successfully!');
-      // redirect after short delay
-      setTimeout(() => {
-        router.push('/login');
-      }, 1200);
+      console.log('✅ Profile inserted successfully');
+      setMessage('✅ Signup successful!');
+      router.push('/login');
     }
 
     setLoading(false);
@@ -106,23 +90,20 @@ if (profileError) {
           onChange={(e) => setPassword(e.target.value)}
           style={{ width: '100%', marginBottom: '1rem', padding: '0.5rem' }}
         />
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            backgroundColor: '#4caf50',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-          }}
-        >
+        <button type="submit" disabled={loading}>
           {loading ? 'Signing up...' : 'Sign Up'}
         </button>
-        {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
+        {message && (
+          <p
+            style={{
+              marginTop: '1rem',
+              color: message.startsWith('❌') ? 'red' : 'green',
+            }}
+          >
+            {message}
+          </p>
+        )}
       </form>
     </div>
   );
-    }
+               }
