@@ -11,59 +11,58 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-    // ✅ Sign in with Supabase
-    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  console.log('🔄 Attempting login with:', email);
 
-    if (loginError) {
-      setError(loginError.message);
-      setLoading(false);
-      return;
-    }
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-    // ✅ Fetch user profile role
-    const userId = loginData.user?.id;
-    if (!userId) {
-      setError('No user returned from login.');
-      setLoading(false);
-      return;
-    }
+  console.log('✅ Login response:', data, error);
 
-    const { data: userProfile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    if (profileError) {
-      console.error('Error fetching profile:', profileError.message);
-      // fallback to default dashboard
-      router.push('/dashboard/customer');
-      return;
-    }
-
-    const role = userProfile?.role;
-
-    // ✅ Redirect based on role
-    if (role === 'admin') {
-      router.push('/dashboard/admin');
-    } else if (role === 'creator') {
-      router.push('/dashboard/creator');
-    } else if (role === 'affiliate') {
-      router.push('/dashboard/affiliate');
-    } else {
-      // default to customer dashboard
-      router.push('/dashboard/customer');
-    }
-
+  if (error) {
+    console.error('❌ Login error:', error.message);
+    setError(error.message);
     setLoading(false);
-  };
+    return;
+  }
+
+  // fetch profile
+  const { data: userProfile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user.id)
+    .single();
+
+  console.log('📌 Profile fetch result:', userProfile, profileError);
+
+  if (profileError) {
+    console.error('❌ Profile fetch error:', profileError.message);
+    setError('Failed to fetch profile');
+    setLoading(false);
+    return;
+  }
+
+  const role = userProfile?.role;
+  console.log('🎯 Role found:', role);
+
+  // navigate
+  if (role === 'admin') {
+    router.push('/dashboard/admin');
+  } else if (role === 'creator') {
+    router.push('/dashboard/creator');
+  } else if (role === 'affiliate') {
+    router.push('/dashboard/affiliate');
+  } else {
+    router.push('/dashboard/customer');
+  }
+
+  setLoading(false);
+};
 
   return (
     <div
