@@ -47,20 +47,20 @@ export default function LoginPage() {
     const role = userProfile?.role;
     setDebug((prev) => prev + '\n🎯 Role found: ' + role);
 
-    // ✅ Delay redirect by 5 seconds so you can read debug
-    setDebug((prev) => prev + '\n⏳ Redirecting in 5 seconds...');
+    // ✅ Delay redirect by 30 seconds so you can read debug
+setDebug((prev) => prev + '\n⏳ Redirecting in 30 seconds...');
 
-    setTimeout(() => {
-      if (role === 'admin') {
-        router.push('/dashboard/admin');
-      } else if (role === 'creator') {
-        router.push('/dashboard/creator');
-      } else if (role === 'affiliate') {
-        router.push('/dashboard/affiliate');
-      } else {
-        router.push('/dashboard/customer');
-      }
-    }, 5000);
+setTimeout(() => {
+  if (role === 'admin') {
+    router.push('/dashboard/admin');
+  } else if (role === 'creator') {
+    router.push('/dashboard/creator');
+  } else if (role === 'affiliate') {
+    router.push('/dashboard/affiliate');
+  } else {
+    router.push('/dashboard/customer');
+  }
+}, 30000); // <-- changed from 5000 to 30000
 
     setLoading(false);
   };
