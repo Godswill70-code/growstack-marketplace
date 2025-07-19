@@ -12,7 +12,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // ✅ stop page reload
     setLoading(true);
     setError('');
     setDebug('⏳ Trying to log in...');
@@ -44,20 +44,23 @@ export default function LoginPage() {
       return;
     }
 
-    setDebug((prev) => prev + '\n📌 Profile fetch result: ' + JSON.stringify(userProfile));
-
     const role = userProfile?.role;
     setDebug((prev) => prev + '\n🎯 Role found: ' + role);
 
-    if (role === 'admin') {
-      router.push('/dashboard/admin');
-    } else if (role === 'creator') {
-      router.push('/dashboard/creator');
-    } else if (role === 'affiliate') {
-      router.push('/dashboard/affiliate');
-    } else {
-      router.push('/dashboard/customer');
-    }
+    // ✅ Delay redirect by 5 seconds so you can read debug
+    setDebug((prev) => prev + '\n⏳ Redirecting in 5 seconds...');
+
+    setTimeout(() => {
+      if (role === 'admin') {
+        router.push('/dashboard/admin');
+      } else if (role === 'creator') {
+        router.push('/dashboard/creator');
+      } else if (role === 'affiliate') {
+        router.push('/dashboard/affiliate');
+      } else {
+        router.push('/dashboard/customer');
+      }
+    }, 5000);
 
     setLoading(false);
   };
@@ -109,7 +112,6 @@ export default function LoginPage() {
         </button>
       </form>
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
-
       {debug && (
         <pre
           style={{
@@ -131,4 +133,4 @@ export default function LoginPage() {
       )}
     </div>
   );
-             }
+}
