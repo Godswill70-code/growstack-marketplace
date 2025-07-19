@@ -8,61 +8,59 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [debug, setDebug] = useState('');
   const router = useRouter();
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setDebug('⏳ Trying to log in...');
 
-  console.log('🔄 Attempting login with:', email);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+    if (error) {
+      setError(error.message);
+      setDebug((prev) => prev + '\n❌ Login error: ' + error.message);
+      setLoading(false);
+      return;
+    }
 
-  console.log('✅ Login response:', data, error);
+    setDebug((prev) => prev + '\n✅ Login response: ' + JSON.stringify(data.user));
 
-  if (error) {
-    console.error('❌ Login error:', error.message);
-    setError(error.message);
+    const { data: userProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profileError) {
+      setError(profileError.message);
+      setDebug((prev) => prev + '\n❌ Profile fetch error: ' + profileError.message);
+      setLoading(false);
+      return;
+    }
+
+    setDebug((prev) => prev + '\n📌 Profile fetch result: ' + JSON.stringify(userProfile));
+
+    const role = userProfile?.role;
+    setDebug((prev) => prev + '\n🎯 Role found: ' + role);
+
+    if (role === 'admin') {
+      router.push('/dashboard/admin');
+    } else if (role === 'creator') {
+      router.push('/dashboard/creator');
+    } else if (role === 'affiliate') {
+      router.push('/dashboard/affiliate');
+    } else {
+      router.push('/dashboard/customer');
+    }
+
     setLoading(false);
-    return;
-  }
-
-  // fetch profile
-  const { data: userProfile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', data.user.id)
-    .single();
-
-  console.log('📌 Profile fetch result:', userProfile, profileError);
-
-  if (profileError) {
-    console.error('❌ Profile fetch error:', profileError.message);
-    setError('Failed to fetch profile');
-    setLoading(false);
-    return;
-  }
-
-  const role = userProfile?.role;
-  console.log('🎯 Role found:', role);
-
-  // navigate
-  if (role === 'admin') {
-    router.push('/dashboard/admin');
-  } else if (role === 'creator') {
-    router.push('/dashboard/creator');
-  } else if (role === 'affiliate') {
-    router.push('/dashboard/affiliate');
-  } else {
-    router.push('/dashboard/customer');
-  }
-
-  setLoading(false);
-};
+  };
 
   return (
     <div
@@ -111,6 +109,26 @@ export default function LoginPage() {
         </button>
       </form>
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
+
+      {debug && (
+        <pre
+          style={{
+            background: '#f9f9f9',
+            color: '#333',
+            padding: '10px',
+            marginTop: '1rem',
+            textAlign: 'left',
+            fontSize: '12px',
+            overflowX: 'auto',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            border: '1px solid #ccc',
+            borderRadius: '6px',
+          }}
+        >
+          {debug}
+        </pre>
+      )}
     </div>
   );
-    }
+             }
