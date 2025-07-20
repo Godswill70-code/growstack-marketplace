@@ -8,29 +8,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [debug, setDebug] = useState('');
   const router = useRouter();
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // ✅ stop page reload
+    e.preventDefault(); // ✅ stop page refresh
+    console.log('⏳ Trying to log in...');
     setLoading(true);
     setError('');
-    setDebug('⏳ Trying to log in...');
 
+    // ✅ sign in
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
+      console.error('❌ Login error:', error.message);
       setError(error.message);
-      setDebug((prev) => prev + '\n❌ Login error: ' + error.message);
       setLoading(false);
       return;
     }
 
-    setDebug((prev) => prev + '\n✅ Login response: ' + JSON.stringify(data.user));
+    console.log('✅ Login response:', data.user);
 
+    // ✅ fetch role from profiles
     const { data: userProfile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
@@ -38,29 +39,34 @@ export default function LoginPage() {
       .single();
 
     if (profileError) {
-      setError(profileError.message);
-      setDebug((prev) => prev + '\n❌ Profile fetch error: ' + profileError.message);
+      console.error('❌ Error fetching profile:', profileError.message);
+      setError('Could not fetch profile. Try again.');
       setLoading(false);
       return;
     }
 
     const role = userProfile?.role;
-    setDebug((prev) => prev + '\n🎯 Role found: ' + role);
+    console.log('🎯 Role found:', role);
 
-    // ✅ Delay redirect by 30 seconds so you can read debug
-setDebug((prev) => prev + '\n⏳ Redirecting in 30 seconds...');
-
-setTimeout(() => {
-  if (role === 'admin') {
-    router.push('/dashboard/admin');
-  } else if (role === 'creator') {
-    router.push('/dashboard/creator');
-  } else if (role === 'affiliate') {
-    router.push('/dashboard/affiliate');
-  } else {
-    router.push('/dashboard/customer');
-  }
-}, 30000); // <-- changed from 5000 to 30000
+    // ✅ redirect based on role
+    try {
+      if (role === 'admin') {
+        console.log('➡️ Redirecting to /dashboard/admin...');
+        await router.push('/dashboard/admin');
+      } else if (role === 'creator') {
+        console.log('➡️ Redirecting to /dashboard/creator...');
+        await router.push('/dashboard/creator');
+      } else if (role === 'affiliate') {
+        console.log('➡️ Redirecting to /dashboard/affiliate...');
+        await router.push('/dashboard/affiliate');
+      } else {
+        console.log('➡️ Redirecting to /dashboard/customer...');
+        await router.push('/dashboard/customer');
+      }
+    } catch (redirectErr) {
+      console.error('❌ Redirect error:', redirectErr);
+      setError('Redirect failed. Please try again.');
+    }
 
     setLoading(false);
   };
@@ -112,25 +118,6 @@ setTimeout(() => {
         </button>
       </form>
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
-      {debug && (
-        <pre
-          style={{
-            background: '#f9f9f9',
-            color: '#333',
-            padding: '10px',
-            marginTop: '1rem',
-            textAlign: 'left',
-            fontSize: '12px',
-            overflowX: 'auto',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            border: '1px solid #ccc',
-            borderRadius: '6px',
-          }}
-        >
-          {debug}
-        </pre>
-      )}
     </div>
   );
 }
