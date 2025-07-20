@@ -44,10 +44,10 @@ export default function HomePage() {
       <section style={styles.howItWorks}>
         <h2 style={styles.heading}>How it Works</h2>
         <ul style={styles.list}>
-          <li>✅ Sign up and set up your profile.</li>
-          <li>✅ Upload and sell your digital products.</li>
-          <li>✅ Affiliates promote your products and earn commissions.</li>
-          <li>✅ Get instant payments and grow your business!</li>
+          <li>👨‍💼 Sign up and set up your profile.</li>
+          <li>👩‍💻 Upload and sell your digital products.</li>
+          <li>💼 Affiliates promote your products and earn commissions.</li>
+          <li>💰 Get instant payments and grow your business!</li>
         </ul>
       </section>
 
