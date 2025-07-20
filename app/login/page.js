@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '../../utils/supabaseClient';
@@ -11,12 +12,12 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // ✅ stop page refresh
+    e.preventDefault();
     console.log('⏳ Trying to log in...');
     setLoading(true);
     setError('');
 
-    // ✅ sign in
+    // Sign in with Supabase
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -31,7 +32,7 @@ export default function LoginPage() {
 
     console.log('✅ Login response:', data.user);
 
-    // ✅ fetch role from profiles
+    // Fetch profile role
     const { data: userProfile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
@@ -45,30 +46,30 @@ export default function LoginPage() {
       return;
     }
 
-    const role = userProfile?.role;
+    const role = userProfile?.role || 'customer';
     console.log('🎯 Role found:', role);
 
-    // ✅ redirect based on role
-    try {
-      if (role === 'admin') {
-        console.log('➡️ Redirecting to /dashboard/admin...');
-        await router.push('/dashboard/admin');
-      } else if (role === 'creator') {
-        console.log('➡️ Redirecting to /dashboard/creator...');
-        await router.push('/dashboard/creator');
-      } else if (role === 'affiliate') {
-        console.log('➡️ Redirecting to /dashboard/affiliate...');
-        await router.push('/dashboard/affiliate');
-      } else {
-        console.log('➡️ Redirecting to /dashboard/customer...');
-        await router.push('/dashboard/customer');
-      }
-    } catch (redirectErr) {
-      console.error('❌ Redirect error:', redirectErr);
-      setError('Redirect failed. Please try again.');
-    }
+    // Wait for session to fully update before redirect
+    setTimeout(async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('🔑 Session after login:', sessionData?.session);
 
-    setLoading(false);
+      if (!sessionData?.session?.user) {
+        setError('Session not found after login.');
+        setLoading(false);
+        return;
+      }
+
+      if (role === 'admin') {
+        router.push('/dashboard/admin');
+      } else if (role === 'creator') {
+        router.push('/dashboard/creator');
+      } else if (role === 'affiliate') {
+        router.push('/dashboard/affiliate');
+      } else {
+        router.push('/dashboard/customer');
+      }
+    }, 1000); // delay 1 second
   };
 
   return (
@@ -120,4 +121,4 @@ export default function LoginPage() {
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
     </div>
   );
-}
+      }
