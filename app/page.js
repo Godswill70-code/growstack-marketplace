@@ -1,94 +1,145 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import GrowstackLogo from '../public/file_000000000ac461f590983b2630a05f13.png'; // ✅ Use your logo path
 
 export default function HomePage() {
-  const router = useRouter();
-
   return (
-    <main className="min-h-screen bg-white text-gray-800">
-      {/* ✅ Top section with Logo */}
-      <section className="flex flex-col items-center py-10 px-4">
+    <main style={styles.main}>
+      {/* ✅ Logo */}
+      <div style={styles.logoContainer}>
         <Image
-          src="/file_000000000ac461f590983b2630a05f13.png"
+          src={GrowstackLogo}
           alt="Growstack Logo"
           width={120}
           height={120}
-          className="mb-6"
+          style={{ marginBottom: '1rem' }}
         />
-        <h1 className="text-4xl font-extrabold mb-4 text-center">
-          Growstack Marketplace
-        </h1>
-        <p className="text-lg text-center max-w-xl">
-          Africa’s premier platform empowering <strong>digital creators</strong>,
-          <strong> affiliates</strong>, and <strong>customers</strong> to thrive together.
+      </div>
+
+      {/* ✅ Hero Section */}
+      <section style={styles.hero}>
+        <h1 style={styles.title}>Growstack Marketplace</h1>
+        <p style={styles.subtitle}>
+          Africa’s premier platform for digital creators, affiliates & customers.
         </p>
       </section>
 
-      {/* ✅ How it works section */}
-      <section className="bg-gray-100 py-10 px-6">
-        <h2 className="text-2xl font-bold mb-6 text-center">🚀 How It Works</h2>
-        <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-6">
-          <div className="bg-white shadow p-6 rounded-xl text-center">
-            <h3 className="text-xl font-semibold mb-3">👩‍💻 Creators</h3>
-            <p>
-              Upload and sell your digital products easily. Reach thousands of customers ready to buy.
-            </p>
-          </div>
-          <div className="bg-white shadow p-6 rounded-xl text-center">
-            <h3 className="text-xl font-semibold mb-3">🤝 Affiliates</h3>
-            <p>
-              Promote high-quality products and earn commissions on every sale you drive.
-            </p>
-          </div>
-          <div className="bg-white shadow p-6 rounded-xl text-center">
-            <h3 className="text-xl font-semibold mb-3">🛍️ Customers</h3>
-            <p>
-              Discover trusted products tailored for Africa’s growing digital economy.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ✅ Trust building section (replaces featured products) */}
-      <section className="py-12 px-6 bg-gradient-to-b from-blue-50 to-white">
-        <h2 className="text-3xl font-bold text-center mb-6">💎 Why Choose Growstack?</h2>
-        <p className="text-lg max-w-3xl mx-auto text-center leading-relaxed">
-          At <strong>Growstack</strong>, trust is our foundation. Every product is reviewed, every creator
-          is verified, and every affiliate is empowered to deliver value.  
-          <br /><br />
-          We’re not just another marketplace—we are a community of innovators reshaping Africa’s
-          digital landscape. Your success is our mission, and we provide secure payments,
-          real-time analytics, and world‑class support to help you scale.
+      {/* ✅ Trust-building Section */}
+      <section style={styles.trustSection}>
+        <h2 style={styles.heading}>Why Choose Growstack?</h2>
+        <p style={styles.text}>
+          We are committed to helping you create, promote, and sell your digital products with ease.
+          Growstack provides a secure platform, instant payouts, and a vibrant community of creators
+          and affiliates you can trust.
         </p>
-
-        {/* Optional visuals */}
-        <div className="mt-10 flex justify-center gap-6 flex-wrap">
-          <div className="p-6 bg-white rounded-xl shadow w-60 text-center">
-            <h3 className="text-xl font-semibold mb-2">🔒 Secure Platform</h3>
-            <p className="text-sm">Your transactions and data are always safe with us.</p>
-          </div>
-          <div className="p-6 bg-white rounded-xl shadow w-60 text-center">
-            <h3 className="text-xl font-semibold mb-2">⚡ Fast Payouts</h3>
-            <p className="text-sm">Earn commissions and receive payments quickly & transparently.</p>
-          </div>
-          <div className="p-6 bg-white rounded-xl shadow w-60 text-center">
-            <h3 className="text-xl font-semibold mb-2">💼 Dedicated Support</h3>
-            <p className="text-sm">We’re here to help you succeed, every step of the way.</p>
-          </div>
-        </div>
+        <p style={styles.text}>
+          Your journey to financial independence starts here — designed to support you every step of
+          the way.
+        </p>
       </section>
 
-      {/* ✅ Get Started button moved to bottom */}
-      <section className="py-10 flex justify-center">
-        <button
-          onClick={() => router.push('/signup')}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold shadow"
-        >
+      {/* ✅ How it works */}
+      <section style={styles.howItWorks}>
+        <h2 style={styles.heading}>How it Works</h2>
+        <ul style={styles.list}>
+          <li>✅ Sign up and set up your profile.</li>
+          <li>✅ Upload and sell your digital products.</li>
+          <li>✅ Affiliates promote your products and earn commissions.</li>
+          <li>✅ Get instant payments and grow your business!</li>
+        </ul>
+      </section>
+
+      {/* ✅ Get Started Button */}
+      <div style={styles.getStartedContainer}>
+        <Link href="/signup" style={styles.getStartedBtn}>
           🚀 Get Started
-        </button>
-      </section>
+        </Link>
+      </div>
+
+      {/* ✅ Footer */}
+      <footer style={styles.footer}>
+        © 2025 Growstack Marketplace. All rights reserved.
+      </footer>
     </main>
   );
-            }
+}
+
+const styles = {
+  main: {
+    padding: '1rem',
+    maxWidth: '800px',
+    margin: '0 auto',
+    fontFamily: 'Arial, sans-serif',
+    lineHeight: '1.6',
+  },
+  logoContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginTop: '1rem',
+  },
+  hero: {
+    textAlign: 'center',
+    marginTop: '1rem',
+    marginBottom: '2rem',
+  },
+  title: {
+    fontSize: '2rem',
+    fontWeight: 'bold',
+    marginBottom: '0.5rem',
+  },
+  subtitle: {
+    fontSize: '1rem',
+    color: '#555',
+    padding: '0 1rem',
+  },
+  trustSection: {
+    marginBottom: '2rem',
+    backgroundColor: '#f9f9f9',
+    padding: '1rem',
+    borderRadius: '8px',
+  },
+  heading: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '0.5rem',
+    textAlign: 'center',
+  },
+  text: {
+    fontSize: '1rem',
+    color: '#333',
+    marginBottom: '0.8rem',
+  },
+  howItWorks: {
+    marginBottom: '3rem',
+  },
+  list: {
+    paddingLeft: '1.2rem',
+    color: '#333',
+    fontSize: '1rem',
+  },
+  getStartedContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '2rem',
+  },
+  getStartedBtn: {
+    display: 'inline-block',
+    backgroundColor: '#0070f3',
+    color: '#fff',
+    padding: '14px 28px',
+    borderRadius: '8px',
+    fontWeight: 'bold',
+    fontSize: '1.2rem',
+    textDecoration: 'none',
+    textAlign: 'center',
+  },
+  footer: {
+    textAlign: 'center',
+    padding: '1rem 0',
+    fontSize: '0.9rem',
+    color: '#666',
+    borderTop: '1px solid #ddd',
+  },
+};
