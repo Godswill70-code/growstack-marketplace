@@ -11,7 +11,7 @@ export default function HomePage() {
       {/* ✅ Top section with Logo */}
       <section className="flex flex-col items-center py-10 px-4">
         <Image
-          src="/growstack-logo.png" // ✅ make sure your logo is in /public folder as growstack-logo.png
+          src="/file_000000000ac461f590983b2630a05f13.png"
           alt="Growstack Logo"
           width={120}
           height={120}
