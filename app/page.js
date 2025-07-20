@@ -1,58 +1,94 @@
 'use client';
 
-import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
-export default function HomePage() { return ( <div style={{ fontFamily: 'Arial, sans-serif', padding: '1rem' }}> {/* Hero Section */} <section style={{ textAlign: 'center', marginTop: '4rem' }}> <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#111' }}> Growstack Marketplace </h1> <p style={{ fontSize: '1.2rem', color: '#555', marginTop: '0.5rem' }}> Africa’s premier platform for digital creators, affiliates & customers. </p> <div style={{ marginTop: '2rem' }}> <Link href="/signup"> <button style={buttonPrimary}>Get Started</button> </Link> <Link href="/dashboard/customer"> <button style={buttonSecondary}>Browse Products</button> </Link> </div> </section>
+export default function HomePage() {
+  const router = useRouter();
 
-{/* Featured Products (static preview or fetch dynamically later) */}
-  <section style={{ marginTop: '4rem' }}>
-    <h2 style={sectionTitle}>🔥 Featured Products</h2>
-    <div style={productGrid}>
-      <ProductCard title="WhatsApp Marketing Mastery" price="3,500" />
-      <ProductCard title="Faceless Video Blueprint" price="5,000" />
-      <ProductCard title="AI Tools for Marketers" price="2,000" />
-      <ProductCard title="Digital Product Starter Kit" price="4,000" />
-    </div>
-  </section>
+  return (
+    <main className="min-h-screen bg-white text-gray-800">
+      {/* ✅ Top section with Logo */}
+      <section className="flex flex-col items-center py-10 px-4">
+        <Image
+          src="/growstack-logo.png" // ✅ make sure your logo is in /public folder as growstack-logo.png
+          alt="Growstack Logo"
+          width={120}
+          height={120}
+          className="mb-6"
+        />
+        <h1 className="text-4xl font-extrabold mb-4 text-center">
+          Growstack Marketplace
+        </h1>
+        <p className="text-lg text-center max-w-xl">
+          Africa’s premier platform empowering <strong>digital creators</strong>,
+          <strong> affiliates</strong>, and <strong>customers</strong> to thrive together.
+        </p>
+      </section>
 
-  {/* How It Works */}
-  <section style={{ marginTop: '4rem' }}>
-    <h2 style={sectionTitle}>🚀 How It Works</h2>
-    <ol style={{ listStyle: 'none', padding: 0 }}>
-      <li style={step}>1️⃣ Create your digital product</li>
-      <li style={step}>2️⃣ Promote it using our affiliate system</li>
-      <li style={step}>3️⃣ Earn and scale your digital business</li>
-    </ol>
-  </section>
+      {/* ✅ How it works section */}
+      <section className="bg-gray-100 py-10 px-6">
+        <h2 className="text-2xl font-bold mb-6 text-center">🚀 How It Works</h2>
+        <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-6">
+          <div className="bg-white shadow p-6 rounded-xl text-center">
+            <h3 className="text-xl font-semibold mb-3">👩‍💻 Creators</h3>
+            <p>
+              Upload and sell your digital products easily. Reach thousands of customers ready to buy.
+            </p>
+          </div>
+          <div className="bg-white shadow p-6 rounded-xl text-center">
+            <h3 className="text-xl font-semibold mb-3">🤝 Affiliates</h3>
+            <p>
+              Promote high-quality products and earn commissions on every sale you drive.
+            </p>
+          </div>
+          <div className="bg-white shadow p-6 rounded-xl text-center">
+            <h3 className="text-xl font-semibold mb-3">🛍️ Customers</h3>
+            <p>
+              Discover trusted products tailored for Africa’s growing digital economy.
+            </p>
+          </div>
+        </div>
+      </section>
 
-  {/* Testimonials */}
-  <section style={{ marginTop: '4rem' }}>
-    <h2 style={sectionTitle}>💬 What Users Say</h2>
-    <div style={{ marginTop: '1rem', fontStyle: 'italic' }}>
-      "Growstack helped me launch and earn from my first eBook in 7 days!" – Ada, Nigeria
-    </div>
-  </section>
+      {/* ✅ Trust building section (replaces featured products) */}
+      <section className="py-12 px-6 bg-gradient-to-b from-blue-50 to-white">
+        <h2 className="text-3xl font-bold text-center mb-6">💎 Why Choose Growstack?</h2>
+        <p className="text-lg max-w-3xl mx-auto text-center leading-relaxed">
+          At <strong>Growstack</strong>, trust is our foundation. Every product is reviewed, every creator
+          is verified, and every affiliate is empowered to deliver value.  
+          <br /><br />
+          We’re not just another marketplace—we are a community of innovators reshaping Africa’s
+          digital landscape. Your success is our mission, and we provide secure payments,
+          real-time analytics, and world‑class support to help you scale.
+        </p>
 
-  {/* Footer */}
-  <footer style={{ marginTop: '4rem', borderTop: '1px solid #ccc', padding: '2rem 0', textAlign: 'center', color: '#666' }}>
-    &copy; {new Date().getFullYear()} Growstack Marketplace. Built for Africa.
-  </footer>
-</div>
+        {/* Optional visuals */}
+        <div className="mt-10 flex justify-center gap-6 flex-wrap">
+          <div className="p-6 bg-white rounded-xl shadow w-60 text-center">
+            <h3 className="text-xl font-semibold mb-2">🔒 Secure Platform</h3>
+            <p className="text-sm">Your transactions and data are always safe with us.</p>
+          </div>
+          <div className="p-6 bg-white rounded-xl shadow w-60 text-center">
+            <h3 className="text-xl font-semibold mb-2">⚡ Fast Payouts</h3>
+            <p className="text-sm">Earn commissions and receive payments quickly & transparently.</p>
+          </div>
+          <div className="p-6 bg-white rounded-xl shadow w-60 text-center">
+            <h3 className="text-xl font-semibold mb-2">💼 Dedicated Support</h3>
+            <p className="text-sm">We’re here to help you succeed, every step of the way.</p>
+          </div>
+        </div>
+      </section>
 
-); }
-
-function ProductCard({ title, price }) { return ( <div style={productCard}> <h3>{title}</h3> <p>₦{price}</p> <button style={buttonSecondary}>View</button> </div> ); }
-
-const sectionTitle = { fontSize: '1.6rem', fontWeight: 'bold', marginBottom: '1rem', color: '#222', };
-
-const step = { marginBottom: '0.5rem', fontSize: '1.1rem', };
-
-const productGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', };
-
-const productCard = { border: '1px solid #ddd', borderRadius: '8px', padding: '1rem', textAlign: 'center', backgroundColor: '#fff', };
-
-const buttonPrimary = { backgroundColor: '#1e3a8a', color: '#fff', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '6px', fontWeight: 'bold', marginRight: '1rem', };
-
-const buttonSecondary = { backgroundColor: '#e0e7ff', color: '#1e3a8a', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '6px', };
-
-  
+      {/* ✅ Get Started button moved to bottom */}
+      <section className="py-10 flex justify-center">
+        <button
+          onClick={() => router.push('/signup')}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold shadow"
+        >
+          🚀 Get Started
+        </button>
+      </section>
+    </main>
+  );
+            }
