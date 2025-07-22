@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '../../utils/supabaseClient';
@@ -8,76 +9,79 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [debug, setDebug] = useState('');
   const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setDebug('⏳ Attempting login…');
+    console.log('⏳ Attempting login with:', email);
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (error) {
-        setError('❌ ' + error.message);
-        setLoading(false);
-        return;
-      }
-
-      console.log('✅ Login response:', data.user);
-      setDebug(`✅ Login response: ${JSON.stringify(data.user)}`);
-
-      // Fetch role
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
-
-      if (profileError) {
-        console.error('❌ Profile fetch error:', profileError.message);
-        setError('❌ Failed to fetch profile');
-        setLoading(false);
-        return;
-      }
-
-      console.log('🎯 Role found:', profile.role);
-      setDebug((prev) => prev + `\n🎯 Role found: ${profile.role}`);
-
-      // Wait 3 seconds for you to see the debug
-      setTimeout(() => {
-        if (profile.role === 'admin') {
-          router.push('/dashboard/admin');
-        } else if (profile.role === 'creator') {
-          router.push('/dashboard/creator');
-        } else if (profile.role === 'affiliate') {
-          router.push('/dashboard/affiliate');
-        } else {
-          router.push('/dashboard/customer');
-        }
-      }, 3000);
-    } catch (err) {
-      console.error('Unexpected error:', err);
-      setError('Unexpected error occurred');
+    if (signInError) {
+      console.error('❌ Sign-in error:', signInError.message);
+      setError(signInError.message);
       setLoading(false);
+      return;
     }
+
+    console.log('✅ Login successful. User ID:', data.user.id);
+
+    // Fetch the user's profile role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profileError) {
+      console.error('❌ Failed to fetch profile:', profileError.message);
+      setError('Could not fetch profile info.');
+      setLoading(false);
+      return;
+    }
+
+    console.log('🎯 Role found:', profile.role);
+
+    // Redirect based on role
+    if (profile.role === 'admin') {
+      console.log('➡️ Redirecting to /dashboard/admin');
+      router.push('/dashboard/admin');
+    } else if (profile.role === 'creator') {
+      console.log('➡️ Redirecting to /dashboard/creator');
+      router.push('/dashboard/creator');
+    } else if (profile.role === 'affiliate') {
+      console.log('➡️ Redirecting to /dashboard/affiliate');
+      router.push('/dashboard/affiliate');
+    } else {
+      console.log('➡️ Redirecting to /dashboard/customer');
+      router.push('/dashboard/customer');
+    }
+
+    // Force refresh after navigation
+    setTimeout(() => {
+      router.refresh();
+    }, 500);
+
+    setLoading(false);
   };
 
   return (
-    <div style={{
-      maxWidth: '400px',
-      margin: '50px auto',
-      padding: '2rem',
-      border: '1px solid #ccc',
-      borderRadius: '8px',
-      backgroundColor: '#fff',
-      textAlign: 'center'
-    }}>
+    <div
+      style={{
+        maxWidth: '400px',
+        margin: '50px auto',
+        padding: '2rem',
+        border: '1px solid #ccc',
+        borderRadius: '8px',
+        backgroundColor: '#fff',
+        textAlign: 'center',
+      }}
+    >
       <h2 style={{ marginBottom: '1.5rem' }}>Login to Growstack</h2>
       <form onSubmit={handleLogin}>
         <input
@@ -109,22 +113,10 @@ export default function LoginPage() {
             cursor: 'pointer',
           }}
         >
-          {loading ? 'Logging in…' : 'Login'}
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
-
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
-      {debug && (
-        <pre style={{
-          textAlign: 'left',
-          background: '#f4f4f4',
-          padding: '1rem',
-          marginTop: '1rem',
-          fontSize: '12px',
-          borderRadius: '8px',
-          overflowX: 'auto'
-        }}>{debug}</pre>
-      )}
     </div>
   );
-    }
+}
