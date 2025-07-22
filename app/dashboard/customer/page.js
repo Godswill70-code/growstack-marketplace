@@ -13,81 +13,100 @@ export default function CustomerDashboard() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    let mounted = true;
 
-      if (sessionError) {
-        console.error('Session fetch error:', sessionError.message);
+    const loadSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (mounted) {
+        if (data?.session?.user) {
+          setUser(data.session.user);
+        }
         setLoading(false);
-        return;
       }
+    };
 
-      if (!sessionData?.session?.user) {
-        // Wait a moment before deciding user isn't logged in
-        console.warn('No session yet, waiting...');
-        setTimeout(() => {
-          router.push('/login');
-        }, 1000);
-        return;
+    loadSession();
+
+    // 🔥 Listen to future auth state changes (this solves the race condition)
+    const {
+      data: authListener
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
       }
+    });
 
-      // ✅ User is logged in
-      const user = sessionData.session.user;
-      setUser(user);
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
-      // Fetch role
-      const { data: profile, error: profileError } = await supabase
+  // ✅ Fetch profile role only after we have a user
+  useEffect(() => {
+    if (!user) return;
+    const fetchRole = async () => {
+      const { data, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
 
-      if (profileError) {
-        console.error('Profile fetch error:', profileError.message);
+      if (error) {
+        console.error('Profile fetch error:', error.message);
       } else {
-        setRole(profile.role);
+        setRole(data.role);
       }
-
-      setLoading(false);
     };
+    fetchRole();
+  }, [user]);
 
-    fetchUser();
-  }, [router]);
-
+  // ✅ Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       const { data, error } = await supabase.from('products').select('*');
-      if (error) console.error('Product fetch error:', error.message);
+      if (error) console.error('Products fetch error:', error.message);
       else setProducts(data);
     };
     fetchProducts();
   }, []);
 
+  // ✅ Redirect if NOT logged in (but only after we know loading is done)
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [loading, user, router]);
+
   if (loading) {
-    return <p style={{ padding: '2rem', textAlign: 'center' }}>⏳ Loading your dashboard…</p>;
+    return <p style={{ padding: '2rem', textAlign: 'center' }}>⏳ Checking session…</p>;
+  }
+
+  if (!user) {
+    return <p style={{ padding: '2rem', textAlign: 'center' }}>Redirecting to login…</p>;
   }
 
   return (
     <div style={{ padding: '1rem' }}>
-      <h2>👋 Welcome, {user?.email}</h2>
+      <h2>👋 Welcome, {user.email}</h2>
       <p>Your current role: <strong>{role}</strong></p>
 
-      <div style={{ marginTop: '2rem' }}>
-        <button
-          onClick={() => router.push('/marketplace')}
-          style={{
-            marginTop: '1rem',
-            padding: '10px 20px',
-            backgroundColor: '#10b981',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}
-        >
-          🛍️ Browse Marketplace
-        </button>
-      </div>
+      <button
+        onClick={() => router.push('/marketplace')}
+        style={{
+          marginTop: '1rem',
+          padding: '10px 20px',
+          backgroundColor: '#10b981',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer'
+        }}
+      >
+        🛍️ Browse Marketplace
+      </button>
 
       <div style={{ marginTop: '3rem' }}>
         <h3>🛒 Available Products</h3>
@@ -124,4 +143,4 @@ export default function CustomerDashboard() {
       </div>
     </div>
   );
-      }
+    }
