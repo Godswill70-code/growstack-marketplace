@@ -11,8 +11,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     setLoading(true);
     setError('');
     console.log('⏳ Attempting login with:', email);
@@ -31,7 +30,7 @@ export default function LoginPage() {
 
     console.log('✅ Login successful. User ID:', data.user.id);
 
-    // Fetch the user's profile role
+    // Fetch profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
@@ -47,25 +46,18 @@ export default function LoginPage() {
 
     console.log('🎯 Role found:', profile.role);
 
-    // Redirect based on role
-    if (profile.role === 'admin') {
-      console.log('➡️ Redirecting to /dashboard/admin');
-      router.push('/dashboard/admin');
-    } else if (profile.role === 'creator') {
-      console.log('➡️ Redirecting to /dashboard/creator');
-      router.push('/dashboard/creator');
-    } else if (profile.role === 'affiliate') {
-      console.log('➡️ Redirecting to /dashboard/affiliate');
-      router.push('/dashboard/affiliate');
-    } else {
-      console.log('➡️ Redirecting to /dashboard/customer');
-      router.push('/dashboard/customer');
-    }
+    // Redirect
+    let destination = '/dashboard/customer';
+    if (profile.role === 'admin') destination = '/dashboard/admin';
+    if (profile.role === 'creator') destination = '/dashboard/creator';
+    if (profile.role === 'affiliate') destination = '/dashboard/affiliate';
 
-    // Force refresh after navigation
+    console.log('➡️ Redirecting to', destination);
+
+    // Use setTimeout to ensure no refresh interference
     setTimeout(() => {
-      router.refresh();
-    }, 500);
+      router.push(destination);
+    }, 1000);
 
     setLoading(false);
   };
@@ -83,40 +75,38 @@ export default function LoginPage() {
       }}
     >
       <h2 style={{ marginBottom: '1.5rem' }}>Login to Growstack</h2>
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          value={email}
-          placeholder="Email"
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ width: '100%', padding: '10px', marginBottom: '1rem' }}
-        />
-        <input
-          type="password"
-          value={password}
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ width: '100%', padding: '10px', marginBottom: '1rem' }}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: '100%',
-            padding: '10px',
-            backgroundColor: '#0070f3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
+      <input
+        type="email"
+        value={email}
+        placeholder="Email"
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        style={{ width: '100%', padding: '10px', marginBottom: '1rem' }}
+      />
+      <input
+        type="password"
+        value={password}
+        placeholder="Password"
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        style={{ width: '100%', padding: '10px', marginBottom: '1rem' }}
+      />
+      <button
+        onClick={handleLogin}
+        disabled={loading}
+        style={{
+          width: '100%',
+          padding: '10px',
+          backgroundColor: '#0070f3',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }}
+      >
+        {loading ? 'Logging in...' : 'Login'}
+      </button>
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
     </div>
   );
-}
+      }
