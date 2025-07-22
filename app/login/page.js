@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import supabase from '../../utils/supabaseClient';
@@ -9,81 +8,76 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [debug, setDebug] = useState('');
   const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('⏳ Trying to log in...');
     setLoading(true);
     setError('');
+    setDebug('⏳ Attempting login…');
 
-    // Sign in with Supabase
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      console.error('❌ Login error:', error.message);
-      setError(error.message);
-      setLoading(false);
-      return;
-    }
-
-    console.log('✅ Login response:', data.user);
-
-    // Fetch profile role
-    const { data: userProfile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single();
-
-    if (profileError) {
-      console.error('❌ Error fetching profile:', profileError.message);
-      setError('Could not fetch profile. Try again.');
-      setLoading(false);
-      return;
-    }
-
-    const role = userProfile?.role || 'customer';
-    console.log('🎯 Role found:', role);
-
-    // Wait for session to fully update before redirect
-    setTimeout(async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      console.log('🔑 Session after login:', sessionData?.session);
-
-      if (!sessionData?.session?.user) {
-        setError('Session not found after login.');
+      if (error) {
+        setError('❌ ' + error.message);
         setLoading(false);
         return;
       }
 
-      if (role === 'admin') {
-        router.push('/dashboard/admin');
-      } else if (role === 'creator') {
-        router.push('/dashboard/creator');
-      } else if (role === 'affiliate') {
-        router.push('/dashboard/affiliate');
-      } else {
-        router.push('/dashboard/customer');
+      console.log('✅ Login response:', data.user);
+      setDebug(`✅ Login response: ${JSON.stringify(data.user)}`);
+
+      // Fetch role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('❌ Profile fetch error:', profileError.message);
+        setError('❌ Failed to fetch profile');
+        setLoading(false);
+        return;
       }
-    }, 1000); // delay 1 second
+
+      console.log('🎯 Role found:', profile.role);
+      setDebug((prev) => prev + `\n🎯 Role found: ${profile.role}`);
+
+      // Wait 3 seconds for you to see the debug
+      setTimeout(() => {
+        if (profile.role === 'admin') {
+          router.push('/dashboard/admin');
+        } else if (profile.role === 'creator') {
+          router.push('/dashboard/creator');
+        } else if (profile.role === 'affiliate') {
+          router.push('/dashboard/affiliate');
+        } else {
+          router.push('/dashboard/customer');
+        }
+      }, 3000);
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setError('Unexpected error occurred');
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      style={{
-        maxWidth: '400px',
-        margin: '50px auto',
-        padding: '2rem',
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        backgroundColor: '#fff',
-        textAlign: 'center',
-      }}
-    >
+    <div style={{
+      maxWidth: '400px',
+      margin: '50px auto',
+      padding: '2rem',
+      border: '1px solid #ccc',
+      borderRadius: '8px',
+      backgroundColor: '#fff',
+      textAlign: 'center'
+    }}>
       <h2 style={{ marginBottom: '1.5rem' }}>Login to Growstack</h2>
       <form onSubmit={handleLogin}>
         <input
@@ -115,10 +109,22 @@ export default function LoginPage() {
             cursor: 'pointer',
           }}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Logging in…' : 'Login'}
         </button>
       </form>
+
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
+      {debug && (
+        <pre style={{
+          textAlign: 'left',
+          background: '#f4f4f4',
+          padding: '1rem',
+          marginTop: '1rem',
+          fontSize: '12px',
+          borderRadius: '8px',
+          overflowX: 'auto'
+        }}>{debug}</pre>
+      )}
     </div>
   );
-      }
+    }
