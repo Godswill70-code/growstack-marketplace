@@ -13,126 +13,152 @@ export default function CustomerDashboard() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    let mounted = true;
+    const fetchSessionAndProfile = async () => {
+      console.log('🔎 Checking session...');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) console.error('❌ Session error:', error);
 
-    const loadSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (mounted) {
-        if (data?.session?.user) {
-          setUser(data.session.user);
-        }
-        setLoading(false);
+      console.log('📌 Session data:', session);
+
+      if (!session || !session.user) {
+        console.log('❌ No session, redirecting to login');
+        router.replace('/login');
+        return;
       }
-    };
 
-    loadSession();
-
-    // 🔥 Listen to future auth state changes (this solves the race condition)
-    const {
-      data: authListener
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  // ✅ Fetch profile role only after we have a user
-  useEffect(() => {
-    if (!user) return;
-    const fetchRole = async () => {
-      const { data, error } = await supabase
+      // Fetch profile
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .single();
 
-      if (error) {
-        console.error('Profile fetch error:', error.message);
-      } else {
-        setRole(data.role);
+      if (profileError) {
+        console.error('❌ Profile fetch error:', profileError);
+        setLoading(false);
+        return;
       }
-    };
-    fetchRole();
-  }, [user]);
 
-  // ✅ Fetch products
-  useEffect(() => {
+      console.log('✅ Profile found:', profile);
+
+      setUser(session.user);
+      setRole(profile.role);
+      setLoading(false);
+    };
+
     const fetchProducts = async () => {
       const { data, error } = await supabase.from('products').select('*');
-      if (error) console.error('Products fetch error:', error.message);
-      else setProducts(data);
+      if (error) {
+        console.error('❌ Error fetching products:', error.message);
+      } else {
+        setProducts(data);
+      }
     };
-    fetchProducts();
-  }, []);
 
-  // ✅ Redirect if NOT logged in (but only after we know loading is done)
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
+    fetchSessionAndProfile();
+    fetchProducts();
+  }, [router]);
+
+  const handleRoleUpdate = async (newRole) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', user.id);
+
+    if (error) {
+      alert('❌ Failed to update role');
+      return;
     }
-  }, [loading, user, router]);
+
+    console.log(`✅ Role updated to ${newRole}`);
+    setRole(newRole);
+    router.replace(`/dashboard/${newRole}`);
+  };
+
+  const handlePurchase = async (product) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setMessage('❌ You must be logged in to purchase.');
+      return;
+    }
+
+    const buyerId = session.user.id;
+    const referralId = localStorage.getItem('referral_id');
+
+    const { error } = await supabase.from('purchases').insert([
+      {
+        buyer_id: buyerId,
+        product_id: product.id,
+        creator_id: product.creator_id,
+        amount: product.price,
+        referral_id: referralId || null,
+      },
+    ]);
+
+    if (error) {
+      setMessage('❌ Failed to complete purchase.');
+    } else {
+      setMessage('✅ Purchase successful!');
+    }
+  };
 
   if (loading) {
-    return <p style={{ padding: '2rem', textAlign: 'center' }}>⏳ Checking session…</p>;
-  }
-
-  if (!user) {
-    return <p style={{ padding: '2rem', textAlign: 'center' }}>Redirecting to login…</p>;
+    return <p style={{ padding: '1rem' }}>⏳ Loading your dashboard...</p>;
   }
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <h2>👋 Welcome, {user.email}</h2>
+    <div style={containerStyle}>
+      <h2>👋 Welcome, {user?.email}</h2>
       <p>Your current role: <strong>{role}</strong></p>
+
+      <div style={{ marginTop: '1.5rem' }}>
+        {role !== 'creator' && (
+          <button onClick={() => handleRoleUpdate('creator')} style={buttonStyle}>
+            Become a Creator
+          </button>
+        )}
+        {role !== 'affiliate' && (
+          <button onClick={() => handleRoleUpdate('affiliate')} style={buttonStyle}>
+            Become an Affiliate
+          </button>
+        )}
+        {role === 'admin' && (
+          <button
+            onClick={() => router.push('/dashboard/admin')}
+            style={{ ...buttonStyle, backgroundColor: '#000' }}
+          >
+            Go to Admin Panel
+          </button>
+        )}
+      </div>
 
       <button
         onClick={() => router.push('/marketplace')}
-        style={{
-          marginTop: '1rem',
-          padding: '10px 20px',
-          backgroundColor: '#10b981',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer'
-        }}
+        style={{ ...buttonStyle, backgroundColor: '#10b981', marginTop: '2rem' }}
       >
         🛍️ Browse Marketplace
       </button>
 
-      <div style={{ marginTop: '3rem' }}>
+      <div style={{ marginTop: '2rem' }}>
         <h3>🛒 Available Products</h3>
         {products.length === 0 ? (
           <p>No products available.</p>
         ) : (
-          <ul style={{ marginTop: '1rem' }}>
+          <ul style={{ padding: 0, listStyle: 'none' }}>
             {products.map((product) => (
-              <li key={product.id} style={{
-                padding: '1rem',
-                border: '1px solid #ccc',
-                marginBottom: '1rem',
-                borderRadius: '8px',
-              }}>
+              <li key={product.id} style={productCard}>
                 <strong>{product.title}</strong>
                 <p>{product.description}</p>
                 <p>💰 ₦{product.price}</p>
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  style={{ maxWidth: '200px', marginTop: '0.5rem' }}
-                />
-                <button
-                  onClick={() => alert('Purchase flow here')}
-                  style={{ marginTop: '1rem' }}
-                >
+                {product.image && (
+                  <img
+                    src={product.image}
+                    alt={product.title}
+                    style={{ maxWidth: '100%', borderRadius: '8px' }}
+                  />
+                )}
+                <button onClick={() => handlePurchase(product)} style={buttonStyle}>
                   Buy Now
                 </button>
               </li>
@@ -143,4 +169,30 @@ export default function CustomerDashboard() {
       </div>
     </div>
   );
-    }
+}
+
+const containerStyle = {
+  padding: '1rem',
+  maxWidth: '600px',
+  margin: '0 auto',
+};
+
+const buttonStyle = {
+  display: 'block',
+  marginTop: '1rem',
+  padding: '12px 20px',
+  backgroundColor: '#3b82f6',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '8px',
+  cursor: 'pointer',
+  width: '100%',
+  fontSize: '16px',
+};
+
+const productCard = {
+  padding: '1rem',
+  border: '1px solid #ccc',
+  marginTop: '1rem',
+  borderRadius: '8px',
+};
