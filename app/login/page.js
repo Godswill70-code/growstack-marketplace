@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import supabase from '../../utils/supabaseClient';
 
 export default function LoginPage() {
@@ -9,7 +8,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogin = async () => {
     setLoading(true);
@@ -30,7 +28,6 @@ export default function LoginPage() {
 
     console.log('✅ Login successful. User ID:', data.user.id);
 
-    // Fetch profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
@@ -46,7 +43,6 @@ export default function LoginPage() {
 
     console.log('🎯 Role found:', profile.role);
 
-    // Redirect
     let destination = '/dashboard/customer';
     if (profile.role === 'admin') destination = '/dashboard/admin';
     if (profile.role === 'creator') destination = '/dashboard/creator';
@@ -54,9 +50,9 @@ export default function LoginPage() {
 
     console.log('➡️ Redirecting to', destination);
 
-    // Use setTimeout to ensure no refresh interference
+    // ✅ Hard redirect instead of router.push
     setTimeout(() => {
-      router.push(destination);
+      window.location.href = destination;
     }, 1000);
 
     setLoading(false);
@@ -109,4 +105,4 @@ export default function LoginPage() {
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
     </div>
   );
-      }
+    }
