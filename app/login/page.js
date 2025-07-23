@@ -1,62 +1,62 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import supabase from '../../utils/supabaseClient';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import supabase from '../../utils/supabaseClient'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
-    setLoading(true);
-    setError('');
-    console.log('⏳ Attempting login with:', email);
+    setLoading(true)
+    setError('')
+
+    console.log('⏳ Attempting login with:', email)
 
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
-    });
+    })
 
     if (signInError) {
-      console.error('❌ Sign-in error:', signInError.message);
-      setError(signInError.message);
-      setLoading(false);
-      return;
+      console.error('❌ Sign-in error:', signInError.message)
+      setError(signInError.message)
+      setLoading(false)
+      return
     }
 
-    console.log('✅ Login successful. User ID:', data.user.id);
+    console.log('✅ Login successful. User ID:', data.user.id)
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', data.user.id)
-      .single();
+      .single()
 
     if (profileError) {
-      console.error('❌ Failed to fetch profile:', profileError.message);
-      setError('Could not fetch profile info.');
-      setLoading(false);
-      return;
+      console.error('❌ Failed to fetch profile:', profileError.message)
+      setError('Could not fetch profile info.')
+      setLoading(false)
+      return
     }
 
-    console.log('🎯 Role found:', profile.role);
+    console.log('🎯 Role found:', profile.role)
 
-    let destination = '/dashboard/customer';
-    if (profile.role === 'admin') destination = '/dashboard/admin';
-    if (profile.role === 'creator') destination = '/dashboard/creator';
-    if (profile.role === 'affiliate') destination = '/dashboard/affiliate';
+    // ✅ Decide destination based on role
+    let destination = '/dashboard/customer'
+    if (profile.role === 'admin') destination = '/dashboard/admin'
+    if (profile.role === 'creator') destination = '/dashboard/creator'
+    if (profile.role === 'affiliate') destination = '/dashboard/affiliate'
 
-    console.log('➡️ Redirecting to', destination);
+    console.log('➡️ Redirecting to', destination)
+    router.replace(destination) // ✅ smooth redirect
 
-    // ✅ Hard redirect instead of router.push
-    setTimeout(() => {
-      window.location.href = destination;
-    }, 1000);
-
-    setLoading(false);
-  };
+    setLoading(false)
+  }
 
   return (
     <div
@@ -104,5 +104,5 @@ export default function LoginPage() {
       </button>
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
     </div>
-  );
+  )
     }
