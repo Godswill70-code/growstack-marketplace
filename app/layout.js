@@ -2,8 +2,9 @@ import '../styles/globals.css';
 import Navbar from '../components/Navbar';
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
-// ✅ Metadata for icons and SEO
+// ✅ Metadata for icons and SEO (allowed now, because no "use client" at top)
 export const metadata = {
   title: 'Growstack Marketplace',
   description: 'The leading digital product platform in Africa',
@@ -18,13 +19,12 @@ export const metadata = {
   },
 };
 
-// ✅ Move client-side logic into a separate component
+// ✅ Client component for referral handling
 function HandleReferralClient() {
-  // This component itself must be marked as client
   'use client';
   const searchParams = useSearchParams();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const ref = searchParams.get('ref');
     if (ref) {
       localStorage.setItem('referral_id', ref);
@@ -39,7 +39,6 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body style={{ margin: 0, fontFamily: 'Arial' }}>
         <Navbar />
-        {/* ✅ Wrap the searchParams logic in Suspense */}
         <Suspense fallback={null}>
           <HandleReferralClient />
         </Suspense>
@@ -47,4 +46,4 @@ export default function RootLayout({ children }) {
       </body>
     </html>
   );
-       }
+      }
