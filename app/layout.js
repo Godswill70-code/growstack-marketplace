@@ -1,7 +1,6 @@
-'use client';
 import '../styles/globals.css';
 import Navbar from '../components/Navbar';
-import { useEffect, Suspense } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 // ✅ Metadata for icons and SEO
@@ -9,7 +8,7 @@ export const metadata = {
   title: 'Growstack Marketplace',
   description: 'The leading digital product platform in Africa',
   icons: {
-    icon: '/favicon.ico', // your favicon
+    icon: '/favicon.ico',
     shortcut: '/favicon.ico',
     apple: '/apple-touch-icon.png',
     other: [
@@ -19,18 +18,20 @@ export const metadata = {
   },
 };
 
-// ✅ A separate client component to handle searchParams inside a Suspense boundary
-function HandleReferral() {
+// ✅ Move client-side logic into a separate component
+function HandleReferralClient() {
+  // This component itself must be marked as client
+  'use client';
   const searchParams = useSearchParams();
 
-  useEffect(() => {
+  React.useEffect(() => {
     const ref = searchParams.get('ref');
     if (ref) {
       localStorage.setItem('referral_id', ref);
     }
   }, [searchParams]);
 
-  return null; // nothing to render visually
+  return null;
 }
 
 export default function RootLayout({ children }) {
@@ -40,10 +41,10 @@ export default function RootLayout({ children }) {
         <Navbar />
         {/* ✅ Wrap the searchParams logic in Suspense */}
         <Suspense fallback={null}>
-          <HandleReferral />
+          <HandleReferralClient />
         </Suspense>
         <main>{children}</main>
       </body>
     </html>
   );
-        }
+       }
