@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl';
-import '../styles/globals.css';
+import '../../styles/globals.css';
 import Navbar from '../../components/Navbar';
 
 export const metadata = {
@@ -26,4 +26,4 @@ export default async function RootLayout({ children, params }) {
       </body>
     </html>
   );
-}
+  }
