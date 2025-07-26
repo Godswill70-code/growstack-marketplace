@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import GrowstackLogo from '../public/file_000000000ac461f590983b2630a05f13.png'; // ✅ Use your logo path
+<img src="/file_000000000ac461f590983b2630a05f13.png" alt="Logo" />
 
 export default function HomePage() {
   return (
