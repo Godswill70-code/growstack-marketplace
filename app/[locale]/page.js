@@ -4,7 +4,7 @@
 import { useTranslations } from 'next-intl';
 
 export default function LocaleHome() {
-  const t = useTranslations(); // load translations from common.json
+  const t = useTranslations('common'); // 👈 specify the namespace
 
   return (
     <main style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
