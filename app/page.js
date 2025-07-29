@@ -2,8 +2,6 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import '../styles/globals.css';
-import Navbar from '../components/Navbar';
 import HamburgerMenu from '../components/HamburgerMenu';
 import GrowstackLogo from '../public/Growstack_logo.png'; // ✅ Use your logo path
 
