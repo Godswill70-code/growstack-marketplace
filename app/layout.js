@@ -1,6 +1,7 @@
+// app/layout.js
 export const metadata = {
-  title: 'Growstack Marketplace',
-  description: 'Your digital product hub in Africa'
+  title: 'Growstack',
+  description: 'Marketplace',
 };
 
 export default function RootLayout({ children }) {
@@ -9,4 +10,4 @@ export default function RootLayout({ children }) {
       <body>{children}</body>
     </html>
   );
-    }
+}
