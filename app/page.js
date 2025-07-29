@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import HamburgerMenu from '../components/HamburgerMenu';
 import GrowstackLogo from '../public/Growstack_logo.png'; // ✅ Use your logo path
 
 export default function HomePage() {
