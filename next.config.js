@@ -1,11 +1,10 @@
+const withNextIntl = require('next-intl/plugin')(
+  './i18n/request.js' // path to your request.js file
+);
+
 /** @type {import('next').NextConfig} */
-const { createNextIntlPlugin } = require('next-intl/plugin');
+const nextConfig = {
+  experimental: {}
+};
 
-const withNextIntl = createNextIntlPlugin('./i18n/request.js'); 
-
-const nextConfig = withNextIntl({
-  output: 'standalone',
-  
-});
-
-module.exports = nextConfig;
+module.exports = withNextIntl(nextConfig);
