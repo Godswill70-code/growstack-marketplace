@@ -56,46 +56,62 @@ export default function HamburgerMenu() {
 
   return (
     <>
-      {/* Hamburger Button */}
+      {/* Hamburger Icon */}
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => setOpen(true)}
         style={{
           position: 'fixed',
           top: '1rem',
           left: '1rem',
-          zIndex: 9999,
-          background: 'transparent',
+          fontSize: '1.8rem',
+          background: 'none',
           border: 'none',
-          fontSize: '2rem',
           cursor: 'pointer',
+          zIndex: 10001,
         }}
-        aria-label="Open Menu"
       >
         ☰
       </button>
+
+      {/* Overlay */}
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            height: '100vh',
+            width: '100vw',
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            zIndex: 10000,
+          }}
+        ></div>
+      )}
 
       {/* Sidebar */}
       <div
         style={{
           position: 'fixed',
           top: 0,
-          left: open ? 0 : '-70%',
-          width: '70%',
+          left: open ? 0 : '-270px',
           height: '100vh',
+          width: '250px',
           background: '#fff',
-          boxShadow: '2px 0 8px rgba(0,0,0,0.2)',
+          boxShadow: '2px 0 10px rgba(0,0,0,0.2)',
           transition: 'left 0.3s ease-in-out',
+          zIndex: 10001,
           padding: '1.5rem 1rem',
-          zIndex: 9998,
           display: 'flex',
           flexDirection: 'column',
         }}
       >
+        {/* Close Button */}
         <button
           onClick={() => setOpen(false)}
           style={{
             alignSelf: 'flex-end',
-            fontSize: '1.5rem',
+            fontSize: '1.2rem',
             background: 'none',
             border: 'none',
             cursor: 'pointer',
@@ -105,10 +121,11 @@ export default function HamburgerMenu() {
           ❌
         </button>
 
+        {/* Content */}
         {user ? (
           <>
-            <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{user?.email}</p>
-            <p style={{ color: '#666', marginBottom: '1rem' }}>Role: <b>{role}</b></p>
+            <p><strong>{user.email}</strong></p>
+            <p style={{ color: '#555' }}>Role: <b>{role}</b></p>
 
             <Link href="/profile" style={linkStyle}>⚙️ Profile</Link>
 
@@ -150,13 +167,11 @@ export default function HamburgerMenu() {
 }
 
 const linkStyle = {
-  background: 'none',
-  border: 'none',
   padding: '10px 0',
+  border: 'none',
+  background: 'none',
   color: '#333',
-  textAlign: 'left',
   fontSize: '1rem',
-  width: '100%',
+  textAlign: 'left',
   cursor: 'pointer',
-  textDecoration: 'none',
 };
