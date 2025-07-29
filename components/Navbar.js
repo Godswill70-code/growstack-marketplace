@@ -34,10 +34,6 @@ export default function Navbar() {
         <span style={{ fontSize: "1.4rem", fontWeight: "bold" }}>Growstack</span>
       </div>
 
-      {/* ✅ Right side: Language Selector */}
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <LanguageSelector />
-      </div>
 
       {/* Dropdown menu for Signup/Login */}
       {menuOpen && (
