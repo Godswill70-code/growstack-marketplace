@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import LanguageSelector from "./LanguageSelector"; // ✅ Import the selector
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
