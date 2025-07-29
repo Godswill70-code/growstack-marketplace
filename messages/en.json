@@ -1,4 +1,5 @@
 {
-  "hello": "Hello",
-  "welcome": "Welcome to Growstack Marketplace"
+  "welcome": "Welcome to GrowStack",
+  "login": "Log In",
+  "signup": "Sign Up"
 }
