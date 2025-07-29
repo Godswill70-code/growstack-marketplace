@@ -1,72 +1,146 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
+import Image from 'next/image';
+import Link from 'next/link';
+import GrowstackLogo from '../public/Growstack_logo.png'; // ✅ Use your logo path
 
-export default function Home() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-
+export default function HomePage() {
   return (
-    <div className="relative min-h-screen bg-white text-gray-800">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-4 shadow-md bg-white">
-        <div className="flex items-center">
-          {/* Hamburger Menu */}
-          <button
-            className="text-2xl focus:outline-none"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          >
-            ☰
-          </button>
-          <span className="ml-3 font-bold text-xl text-[#0f172a]">Growstack</span>
-        </div>
-      </header>
-
-      {/* Sidebar */}
-      <div
-        className={`fixed top-0 left-0 h-full w-64 bg-gray-900 text-white p-6 z-50 transform transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">Menu</h2>
-          <button
-            className="text-xl"
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            ✕
-          </button>
-        </div>
-
-        <nav className="flex flex-col space-y-4">
-          <Link href="/auth/signup">
-            <span className="block bg-white text-gray-900 rounded px-4 py-2 font-semibold hover:bg-gray-200">
-              Sign Up
-            </span>
-          </Link>
-          <Link href="/auth/login">
-            <span className="block bg-white text-gray-900 rounded px-4 py-2 font-semibold hover:bg-gray-200">
-              Log In
-            </span>
-          </Link>
-        </nav>
+    <main style={styles.main}>
+      {/* ✅ Logo */}
+      <div style={styles.logoContainer}>
+        <Image
+          src={GrowstackLogo}
+          alt="Growstack Logo"
+          width={120}
+          height={120}
+          style={{ marginBottom: '1rem' }}
+        />
       </div>
 
-      {/* Page Content */}
-      <main className="p-6 mt-10 text-center">
-        <h1 className="text-3xl font-bold mb-4 text-[#0f172a]">Welcome to Growstack Marketplace</h1>
-        <p className="text-lg text-gray-700">
-          Africa’s #1 platform to discover, promote, and profit from digital products.
+      {/* ✅ Hero Section */}
+      <section style={styles.hero}>
+        <h1 style={styles.title}>Growstack Marketplace</h1>
+        <p style={styles.subtitle}>
+          Africa’s premier platform for digital creators, affiliates & customers.
         </p>
-      </main>
+      </section>
 
-      {/* Overlay (when sidebar is open) */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-    </div>
-  )
-              }
+      {/* ✅ Trust-building Section */}
+      <section style={styles.trustSection}>
+        <h2 style={styles.heading}>Why Choose Growstack?</h2>
+        <p style={styles.text}>
+          We are committed to helping you create, promote, and sell your digital products with ease.
+          Growstack provides a secure platform, instant payouts, and a vibrant community of creators
+          and affiliates you can trust.
+        </p>
+        <p style={styles.text}>
+          Your journey to financial independence starts here — designed to support you every step of
+          the way.
+        </p>
+      </section>
+
+      {/* ✅ How it works */}
+      <section style={styles.howItWorks}>
+        <h2 style={styles.heading}>How it Works</h2>
+        <ul style={styles.list}>
+          <li>👨‍💼 Sign up and set up your profile.</li>
+          <li>👩‍💻 Upload and sell your digital products.</li>
+          <li>💼 Affiliates promote your products and earn commissions.</li>
+          <li>💰 Get instant payments and grow your business!</li>
+        </ul>
+      </section>
+
+      {/* ✅ Get Started Button */}
+      <div style={styles.getStartedContainer}>
+        <Link href="/signup" style={styles.getStartedBtn}>
+          🚀 Get Started
+        </Link>
+      </div>
+
+      {/* ✅ Footer */}
+      <footer style={styles.footer}>
+        © 2025 Growstack Marketplace. All rights reserved.
+      </footer>
+    </main>
+  );
+}
+
+const styles = {
+  main: {
+    padding: '1rem',
+    maxWidth: '800px',
+    margin: '0 auto',
+    fontFamily: 'Arial, sans-serif',
+    lineHeight: '1.6',
+  },
+  logoContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginTop: '1rem',
+  },
+  hero: {
+    textAlign: 'center',
+    marginTop: '1rem',
+    marginBottom: '2rem',
+  },
+  title: {
+    fontSize: '2rem',
+    fontWeight: 'bold',
+    marginBottom: '0.5rem',
+  },
+  subtitle: {
+    fontSize: '1rem',
+    color: '#555',
+    padding: '0 1rem',
+  },
+  trustSection: {
+    marginBottom: '2rem',
+    backgroundColor: '#f9f9f9',
+    padding: '1rem',
+    borderRadius: '8px',
+  },
+  heading: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '0.5rem',
+    textAlign: 'center',
+  },
+  text: {
+    fontSize: '1rem',
+    color: '#333',
+    marginBottom: '0.8rem',
+  },
+  howItWorks: {
+    marginBottom: '3rem',
+  },
+  list: {
+    paddingLeft: '1.2rem',
+    color: '#333',
+    fontSize: '1rem',
+  },
+  getStartedContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '2rem',
+  },
+  getStartedBtn: {
+    display: 'inline-block',
+    backgroundColor: '#0070f3',
+    color: '#fff',
+    padding: '14px 28px',
+    borderRadius: '8px',
+    fontWeight: 'bold',
+    fontSize: '1.2rem',
+    textDecoration: 'none',
+    textAlign: 'center',
+  },
+  footer: {
+    textAlign: 'center',
+    padding: '1rem 0',
+    fontSize: '0.9rem',
+    color: '#666',
+    borderTop: '1px solid #ddd',
+  },
+};
+    
