@@ -1,161 +1,55 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
-import supabase from '../utils/supabaseClient';
 
 export default function HamburgerMenu() {
-  const [open, setOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState('');
-  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (!error) {
-        setUser(session.user);
-        setRole(data.role);
-      }
-    };
-
-    fetchUser();
-  }, []);
-
-  const handleRoleSwitch = async (newRole) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ role: newRole })
-      .eq('id', user.id);
-
-    if (!error) {
-      router.push(`/dashboard/${newRole}`);
-      setOpen(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-    setOpen(false);
-  };
-
-  const handleNavigate = (path) => {
-    router.push(path);
-    setOpen(false);
-  };
+  const toggleMenu = () => setIsOpen(!isOpen);
+  const closeMenu = () => setIsOpen(false);
 
   return (
-    <>
-      {/* Hamburger Icon - fixed top-left */}
-      <button
-        onClick={() => setOpen(!open)}
-        style={{
-          position: 'fixed',
-          top: '1rem',
-          left: '1rem',
-          fontSize: '1.5rem',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          zIndex: 10001,
-        }}
-      >
-        ☰
-      </button>
-
-      {/* Sidebar */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: open ? 0 : '-260px',
-          height: '100vh',
-          width: '250px',
-          background: '#fff',
-          boxShadow: '2px 0 8px rgba(0,0,0,0.15)',
-          transition: 'left 0.3s ease-in-out',
-          zIndex: 10000,
-          padding: '1rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
-        }}
-      >
+    <div className="relative">
+      {/* Hamburger Icon (only visible when menu is closed) */}
+      {!isOpen && (
         <button
-          onClick={() => setOpen(false)}
-          style={{
-            alignSelf: 'flex-end',
-            fontSize: '1.2rem',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-          }}
+          onClick={toggleMenu}
+          className="p-3 text-black focus:outline-none"
         >
-          ❌
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </button>
+      )}
 
-        {user ? (
-          <>
-            <p><strong>{user?.email}</strong></p>
-            <p style={{ color: '#555' }}>Role: <b>{role}</b></p>
+      {/* Sidebar Menu */}
+      {isOpen && (
+        <>
+          {/* Dark background overlay */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={closeMenu}
+          ></div>
 
-            <Link href="/profile" style={linkStyle}>⚙️ Profile Settings</Link>
-
-            {role !== 'creator' && (
-              <button onClick={() => handleRoleSwitch('creator')} style={linkStyle}>
-                🎬 Become a Creator
-              </button>
-            )}
-
-            {role !== 'affiliate' && (
-              <button onClick={() => handleRoleSwitch('affiliate')} style={linkStyle}>
-                🤝 Become an Affiliate
-              </button>
-            )}
-
-            {role === 'admin' && (
-              <Link href="/dashboard/admin" style={linkStyle}>
-                🛠 Admin Panel
-              </Link>
-            )}
-
-            <button onClick={handleLogout} style={{ ...linkStyle, color: 'red' }}>
-              🔓 Log out
-            </button>
-          </>
-        ) : (
-          <>
-            <button onClick={() => handleNavigate('/signup')} style={linkStyle}>
-              📝 Sign Up
-            </button>
-            <button onClick={() => handleNavigate('/login')} style={linkStyle}>
-              🔐 Login
-            </button>
-          </>
-        )}
-      </div>
-    </>
+          {/* Sidebar */}
+          <div className="fixed top-0 left-0 w-2/3 h-full bg-white z-50 p-5 shadow-lg transition-transform duration-300">
+            <h2 className="text-xl font-bold mb-6">Growstack</h2>
+            <ul className="space-y-4">
+              <li>
+                <Link href="/signup" onClick={closeMenu} className="block text-black hover:underline">
+                  Sign Up
+                </Link>
+              </li>
+              <li>
+                <Link href="/login" onClick={closeMenu} className="block text-black hover:underline">
+                  Login
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </>
+      )}
+    </div>
   );
-}
-
-const linkStyle = {
-  display: 'block',
-  padding: '10px 0',
-  background: 'none',
-  border: 'none',
-  color: '#333',
-  textAlign: 'left',
-  fontSize: '1rem',
-  width: '100%',
-  cursor: 'pointer',
-};
+            }
