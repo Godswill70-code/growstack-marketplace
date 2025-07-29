@@ -39,71 +39,112 @@ export default function HamburgerMenu() {
 
     if (!error) {
       router.push(`/dashboard/${newRole}`);
+      setOpen(false);
     }
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
+    setOpen(false);
+  };
+
+  const handleNavigate = (path) => {
+    router.push(path);
+    setOpen(false);
   };
 
   return (
-    <div style={{ position: 'relative', padding: '1rem' }}>
+    <>
+      {/* Hamburger Icon - fixed top-left */}
       <button
         onClick={() => setOpen(!open)}
         style={{
+          position: 'fixed',
+          top: '1rem',
+          left: '1rem',
           fontSize: '1.5rem',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
+          zIndex: 10001,
         }}
       >
         ☰
       </button>
 
-      {open && (
-        <div
+      {/* Sidebar */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: open ? 0 : '-260px',
+          height: '100vh',
+          width: '250px',
+          background: '#fff',
+          boxShadow: '2px 0 8px rgba(0,0,0,0.15)',
+          transition: 'left 0.3s ease-in-out',
+          zIndex: 10000,
+          padding: '1rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+        }}
+      >
+        <button
+          onClick={() => setOpen(false)}
           style={{
-            position: 'absolute',
-            top: '3rem',
-            left: '0',
-            background: '#fff',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            borderRadius: '10px',
-            padding: '1rem',
-            width: '230px',
-            zIndex: 999,
+            alignSelf: 'flex-end',
+            fontSize: '1.2rem',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
           }}
         >
-          <p><strong>{user?.email}</strong></p>
-          <p style={{ color: '#555' }}>Role: <b>{role}</b></p>
+          ❌
+        </button>
 
-          <Link href="/profile" style={linkStyle}>⚙️ Profile Settings</Link>
+        {user ? (
+          <>
+            <p><strong>{user?.email}</strong></p>
+            <p style={{ color: '#555' }}>Role: <b>{role}</b></p>
 
-          {role !== 'creator' && (
-            <button onClick={() => handleRoleSwitch('creator')} style={linkStyle}>
-              🎬 Become a Creator
+            <Link href="/profile" style={linkStyle}>⚙️ Profile Settings</Link>
+
+            {role !== 'creator' && (
+              <button onClick={() => handleRoleSwitch('creator')} style={linkStyle}>
+                🎬 Become a Creator
+              </button>
+            )}
+
+            {role !== 'affiliate' && (
+              <button onClick={() => handleRoleSwitch('affiliate')} style={linkStyle}>
+                🤝 Become an Affiliate
+              </button>
+            )}
+
+            {role === 'admin' && (
+              <Link href="/dashboard/admin" style={linkStyle}>
+                🛠 Admin Panel
+              </Link>
+            )}
+
+            <button onClick={handleLogout} style={{ ...linkStyle, color: 'red' }}>
+              🔓 Log out
             </button>
-          )}
-
-          {role !== 'affiliate' && (
-            <button onClick={() => handleRoleSwitch('affiliate')} style={linkStyle}>
-              🤝 Become an Affiliate
+          </>
+        ) : (
+          <>
+            <button onClick={() => handleNavigate('/signup')} style={linkStyle}>
+              📝 Sign Up
             </button>
-          )}
-
-          {role === 'admin' && (
-            <Link href="/dashboard/admin" style={linkStyle}>
-              🛠 Admin Panel
-            </Link>
-          )}
-
-          <button onClick={handleLogout} style={{ ...linkStyle, color: 'red' }}>
-            🔓 Log out
-          </button>
-        </div>
-      )}
-    </div>
+            <button onClick={() => handleNavigate('/login')} style={linkStyle}>
+              🔐 Login
+            </button>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
