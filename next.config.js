@@ -1,10 +1,6 @@
-const withNextIntl = require('next-intl/plugin')(
-  './i18n/request.js' // path to your request.js file
-);
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {}
+  reactStrictMode: true
 };
 
-module.exports = withNextIntl(nextConfig);
+module.exports = nextConfig;
