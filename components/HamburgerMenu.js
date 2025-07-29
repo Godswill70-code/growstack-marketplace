@@ -68,6 +68,7 @@ export default function HamburgerMenu() {
         ☰
       </button>
 
+      {/* Slide-in Menu */}
       <div
         style={{
           position: 'fixed',
