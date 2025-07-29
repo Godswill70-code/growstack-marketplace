@@ -8,6 +8,9 @@ import GrowstackLogo from '../public/Growstack_logo.png'; // ✅ Use your logo p
 export default function HomePage() {
   return (
     <main style={styles.main}>
+      {/* ✅ Hamburger */}
+      <HamburgerMenu />
+
       {/* ✅ Logo */}
       <div style={styles.logoContainer}>
         <Image
@@ -74,6 +77,7 @@ const styles = {
     margin: '0 auto',
     fontFamily: 'Arial, sans-serif',
     lineHeight: '1.6',
+    position: 'relative',
   },
   logoContainer: {
     display: 'flex',
@@ -144,4 +148,3 @@ const styles = {
     borderTop: '1px solid #ddd',
   },
 };
-    
