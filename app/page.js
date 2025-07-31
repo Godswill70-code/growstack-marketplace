@@ -15,7 +15,7 @@ export default function HomePage() {
       </div>
 
       {/* Logo */}
-      <div style={styles.logoContainer}>
+      <div className="flex items-center space-x-2">
         <Image
           src={GrowstackLogo}
           alt="Growstack Logo"
