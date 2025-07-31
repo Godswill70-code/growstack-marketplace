@@ -3,12 +3,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import HamburgerMenu from '../components/HamburgerMenu';
-import GrowstackLogo from '../public/Growstack_logo.png'; // ✅ Use your logo path
+import GrowstackLogo from '../public/Growstack_logo.png'; // ✅ Your logo
 
 export default function HomePage() {
   return (
-    
-      {/* ✅ Logo */}
+    <main style={styles.main}>
+      {/* Top bar with only the new HamburgerMenu and title */}
+      <div style={styles.topBar}>
+        <HamburgerMenu />
+        <h1 style={styles.topTitle}>Growstack</h1>
+      </div>
+
+      {/* Logo */}
       <div style={styles.logoContainer}>
         <Image
           src={GrowstackLogo}
@@ -19,17 +25,17 @@ export default function HomePage() {
         />
       </div>
 
-      {/* ✅ Hero Section */}
+      {/* Hero Section */}
       <section style={styles.hero}>
-        <h1 style={styles.title}>Growstack Marketplace</h1>
+        <h2 style={styles.title}>Growstack Marketplace</h2>
         <p style={styles.subtitle}>
           Africa’s premier platform for digital creators, affiliates & customers.
         </p>
       </section>
 
-      {/* ✅ Trust-building Section */}
+      {/* Trust-building Section */}
       <section style={styles.trustSection}>
-        <h2 style={styles.heading}>Why Choose Growstack?</h2>
+        <h3 style={styles.heading}>Why Choose Growstack?</h3>
         <p style={styles.text}>
           We are committed to helping you create, promote, and sell your digital products with ease.
           Growstack provides a secure platform, instant payouts, and a vibrant community of creators
@@ -41,9 +47,9 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* ✅ How it works */}
+      {/* How it works */}
       <section style={styles.howItWorks}>
-        <h2 style={styles.heading}>How it Works</h2>
+        <h3 style={styles.heading}>How it Works</h3>
         <ul style={styles.list}>
           <li>👨‍💼 Sign up and set up your profile.</li>
           <li>👩‍💻 Upload and sell your digital products.</li>
@@ -52,14 +58,14 @@ export default function HomePage() {
         </ul>
       </section>
 
-      {/* ✅ Get Started Button */}
+      {/* Get Started Button */}
       <div style={styles.getStartedContainer}>
         <Link href="/signup" style={styles.getStartedBtn}>
           🚀 Get Started
         </Link>
       </div>
 
-      {/* ✅ Footer */}
+      {/* Footer */}
       <footer style={styles.footer}>
         © 2025 Growstack Marketplace. All rights reserved.
       </footer>
@@ -73,17 +79,28 @@ const styles = {
     maxWidth: '800px',
     margin: '0 auto',
     fontFamily: 'Arial, sans-serif',
-    lineHeight: '1.6',
+    lineHeight: 1.6,
     position: 'relative',
+  },
+  topBar: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0.5rem 0',
+    borderBottom: '1px solid #ddd',
+    marginBottom: '1rem',
+  },
+  topTitle: {
+    marginLeft: '1rem',
+    fontSize: '1.25rem',
+    fontWeight: 'bold',
   },
   logoContainer: {
     display: 'flex',
     justifyContent: 'center',
-    marginTop: '1rem',
+    marginBottom: '1.5rem',
   },
   hero: {
     textAlign: 'center',
-    marginTop: '1rem',
     marginBottom: '2rem',
   },
   title: {
@@ -97,16 +114,16 @@ const styles = {
     padding: '0 1rem',
   },
   trustSection: {
-    marginBottom: '2rem',
     backgroundColor: '#f9f9f9',
     padding: '1rem',
     borderRadius: '8px',
+    marginBottom: '2rem',
   },
   heading: {
     fontSize: '1.5rem',
     fontWeight: 'bold',
-    marginBottom: '0.5rem',
     textAlign: 'center',
+    marginBottom: '0.75rem',
   },
   text: {
     fontSize: '1rem',
@@ -127,15 +144,13 @@ const styles = {
     marginBottom: '2rem',
   },
   getStartedBtn: {
-    display: 'inline-block',
     backgroundColor: '#0070f3',
     color: '#fff',
     padding: '14px 28px',
     borderRadius: '8px',
     fontWeight: 'bold',
-    fontSize: '1.2rem',
+    fontSize: '1.1rem',
     textDecoration: 'none',
-    textAlign: 'center',
   },
   footer: {
     textAlign: 'center',
