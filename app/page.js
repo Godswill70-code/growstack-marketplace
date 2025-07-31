@@ -7,10 +7,7 @@ import GrowstackLogo from '../public/Growstack_logo.png'; // ✅ Use your logo p
 
 export default function HomePage() {
   return (
-    <main style={styles.main}>
-      {/* ✅ Hamburger */}
-      <HamburgerMenu />
-
+    
       {/* ✅ Logo */}
       <div style={styles.logoContainer}>
         <Image
