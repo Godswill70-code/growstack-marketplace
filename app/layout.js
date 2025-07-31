@@ -1,4 +1,5 @@
 import '../styles/globals.css';
+import Navbar from '../components/Navbar';
 import { Suspense } from 'react';
 import HandleReferralClient from './HandleReferralClient';
 
